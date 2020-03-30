@@ -22,7 +22,7 @@ The general approach to deploy the PHP Agent/Probe in an environment is as follo
 1. Deploy the Infrastructure Agent that 
     - sends monitoring data to the private or public cloud data collector
     - hosts the PHP extension
-2. Deploy and activate the PHP extension inside the IA. The extension proxies data
+2. Deploy and activate the PHP extension inside the IA. The extension proxies data:
     - sends monitoring data to the IA (Infrastructure Agent)
     - receives monitoring data from the PHP probe (Installed at the WebServer Level/PHP section)
 3. Deploy the PHP probe into one or more PHP installations. The probe captures monitoring data and sends them to the PHP extension (on port 5005 - by default)
@@ -30,7 +30,7 @@ The general approach to deploy the PHP Agent/Probe in an environment is as follo
 **Note**: One IA (Infrastructure Agent) with the PHP Extension can receive monitoring data from multiple PHP Probes.   
 To save resources you can therefore deploy only one IA with the PHP extension to serve multiple PHP probes.
 Because the IA is heavyweight (Java) and the PHP probe is lightweight, about ~3MBytes).   
-**Note 2**: Reduce the network path/hops the PHP Probe has to pass to transfer its findings to the IA (Infrastructure Agent). The network induce I/O can have an impact on the overall network infrastructure on highly loaded WebServers. The best approach is to use on IA per physical machine in the Docker cluster.
+**Note 2**: Reduce the network path/hops the PHP Probe has to pass to transfer its findings to the IA (Infrastructure Agent). The network induce I/O can have an impact on the overall network infrastructure on highly loaded WebServers. The best approach is to use one IA per physical machine in the Docker cluster.
 
 This documentation describes how to deploy an IA in a docker container and how to deploy a PHP probe in other docker containers for a resource efficient setup.
 

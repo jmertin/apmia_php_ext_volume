@@ -82,7 +82,9 @@ Add the following into the docker-compose file:
     volumes:
       - /opt/apmia
 ```
-_**NOTE**: The volumes "/opt/apmia" is very important if one wants to use the same image for deploying the probes. See next chapter_
+**Note 1**: The volumes "/opt/apmia" is very important if one wants to use the same image for deploying the probes. See next chapter.   
+**Note 2**: Do not use spaces in the app names. The installer does not like it.   
+
 
 In the configuration, the following can be influenced:
 - APMIA_DEPLOY [true|false]: Instructs the start script to either launch the APMIA Agent, or simply skip it and return a true exit value. Defaults to false
@@ -110,7 +112,7 @@ version: '2'
 [...]
     environment:
       - PHP_DEPLOY=true
-      - PHP_APPNAME=PCM App
+      - PHP_APPNAME=PCM_App
       - PHP_AGENT_DISPLAYED_HOSTNAME=pcm-dev
       - PHP_LOGDIR=/var/log
       - PHP_IAHOST=apmia_container
@@ -121,7 +123,7 @@ version: '2'
 **Note**: In case the mount directory is not /opt/apmia - the installer script needs to be modified!   
 **Note 2**: The PHP_IAHOST needs to match the container-name of the APMIA container or the APMIA Host!   
 **Note 3**: The "apmia-php-vol" refers to APMIA Agent section (see "Deploying as a APMIA Agent").   
-
+**Note 4**: Do not use spaces in the app names. The installer does not like it.   
 
 To influence the installation of the PHP probe, one can use the following variables to be exposed in the docker-compose file:
 

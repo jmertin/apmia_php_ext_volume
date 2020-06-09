@@ -1,3 +1,5 @@
+2020-06-09 629abaa Joerg Mertin Moved to ubuntu 18.04 due to glibc issues in alpine.
+2020-06-09 81169f0 Joerg Mertin Various updates to take care of different behavior of tar binary accross distributions and doc fixes.
 2020-06-09 52f7757 Joerg Mertin Added build info files.
 2020-06-09 f3fd7e7 Joerg Mertin Recent shell has issues with rellative path's to source.
 2020-03-30 88ad5b9 Joerg Mertin Added TODO file.

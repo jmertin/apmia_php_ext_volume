@@ -82,7 +82,7 @@ Add the following into the docker-compose file:
       - APMIA_AGENT_DISPLAYED_HOSTNAME=apmia-pod
       - APMIA_APP_NAME=php-collector
       - APMIA_LOG_LEVEL=WARNING
-      - APMIA_INTROSCOPE_AGENTNAME
+      - APMIA_INTROSCOPE_AGENTNAME=apmia
     volumes:
       - /opt/apmia
 ```

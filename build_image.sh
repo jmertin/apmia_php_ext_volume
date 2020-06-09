@@ -45,10 +45,6 @@ if [ "$DownLoad" = "y" ]
 	   tar xvf PHP-apmia-*.tar apmia/manifest.txt
 	   PHPMONITVER=`grep php-monitor apmia/manifest.txt | cut -d ':' -f 2`
 	   TMP=`ls PHP-apmia-*.tar`
-	   echo "Updating tar archive. Adding php-probe.sh"
-	   cp php-probe.sh apmia/php-probe.sh
-	   # Implanting php-probe into the apmia archive
-	   tar -rf $TMP apmia/php-probe.sh
 	   FILENAME=`ls PHP-apmia-*.tar`
        else
 	   echo "*** FATAL: Download failed. Exiting."
@@ -58,10 +54,6 @@ else
     tar xvf PHP-apmia-*.tar apmia/manifest.txt
     PHPMONITVER=`grep php-monitor apmia/manifest.txt | cut -d ':' -f 2`
     TMP=`ls PHP-apmia-*.tar`
-    echo "Updating tar archive. Adding php-probe.sh"
-    cp php-probe.sh apmia/php-probe.sh
-    # Implanting php-probe into the apmia archive
-    tar -rf $TMP apmia/php-probe.sh
     FILENAME=`ls PHP-apmia-*.tar`   
 fi
 

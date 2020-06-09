@@ -5,7 +5,7 @@ if [ $APMIA_DEPLOY = "true" ]
 then
     INS_DIR=${APMIA_DIR:-/opt/apmia}
 
-    if [ ! -d INS_DIR ]
+    if [ ! -d $INS_DIR ]
     then
 	echo "*** FATAL: $INS_DIR directory does not exist. Emergency exit!"
     fi

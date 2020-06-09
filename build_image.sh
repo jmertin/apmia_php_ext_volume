@@ -15,7 +15,7 @@ fi
 
 if [ -f build_image.cfg ]
 then
-    source build_image.cfg
+    source ./build_image.cfg
 else
     echo
     echo "*** ERROR: Missing build_image.cfg configuration file (normal on first run)!"

@@ -1,7 +1,3 @@
-# apmia_php_ext_volume 1.0-3 by J. Mertin -- joerg.mertin@broadcom.com
-Purpose: APMIA Agent/Passive PHP Extension volume for docker
-
-# Description
 ### Image description
 
 This image build kit will create a passive image containing the PHP
@@ -249,11 +245,4 @@ The image will be created and the version tag applied to the image tag.
 jmertin@calypso:~/docker/apmia_php_ext_volume$ docker images | grep apmia_php
 mertin/apmia_php_ext_volume   20.1.0.44                  2e45076a06c3        22 seconds ago      639MB
 mertin/apmia_php_ext_volume   latest                     2e45076a06c3        22 seconds ago      639MB
-```
-
-
-# Manual Changelog
-```
-Fri Mar 27 10:52:53 CET 2020
-- Initial release
 ```

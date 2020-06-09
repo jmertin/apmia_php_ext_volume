@@ -1,3 +1,5 @@
+2020-06-09 f3fd7e7 Joerg Mertin Recent shell has issues with rellative path's to source.
+2020-03-30 88ad5b9 Joerg Mertin Added TODO file.
 2020-03-30 5df57e9 Joerg Mertin Updated documentation and TODO list
 2020-03-27 2bf6f73 Joerg Mertin Updated build files and added gitignore
 2020-03-27 9aa49fc Joerg Mertin Initial apmia_php_ext_volume git commit

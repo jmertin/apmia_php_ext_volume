@@ -3,7 +3,4 @@ apmia_php_ext_volume.log
 PHP-apmia-*.tar
 manifest.txt
 apmia/*
-00_infosource.cfg
-01_description.inc
-02_changelog.inc
 build_image.cf*

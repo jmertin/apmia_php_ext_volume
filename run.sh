@@ -17,7 +17,7 @@ then
     AIAAG=${APMIA_INTROSCOPE_AGENTNAME:-apmia}
 
     # Check if we want to add a mysql Monitor
-    if [ $MYSQL_MONITOR = "true" ]
+    if [ "$MYSQL_MONITOR" = "true" ]
     then
 	if [ -x /opt/apmia/deploy_extension.sh ]
 	then

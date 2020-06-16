@@ -16,13 +16,26 @@ then
     ALOGLVL=${APMIA_LOG_LEVEL:-WARNING}
     AIAAG=${APMIA_INTROSCOPE_AGENTNAME:-apmia}
 
+    # Check if we want to add a mysql Monitor
+    if [ $MYSQL_MONITOR = "true" ]
+    then
+	if [ -x /opt/apmia/deploy_extension.sh ]
+	then
+	    # executing mysql deployment
+	    /opt/apmia/deploy_extension.sh mysql
+	else
+	    echo "*** INFO: No mysql extension found. "
+	fi
+    fi
+
+    
     # Implant configuration / defaults
     sed -i 's/^introscope.agent.agentName=.*/introscope.agent.agentName\='${AIAAG}'/g' ${INS_DIR}/core/config/IntroscopeAgent.profile
     sed -i 's/.*introscope.agent.application.name=.*/introscope.agent.application.name\='${ANAME}'/g' ${INS_DIR}/core/config/IntroscopeAgent.profile
     sed -i 's/^log4j.logger.IntroscopeAgent=.*/log4j.logger.IntroscopeAgent=INFO\='$ALOGLVL:=WARNING'\, console/g' ${INS_DIR}/core/config/IntroscopeAgent.profile
     echo "introscope.agent.hostName=${AADH}" >> ${INS_DIR}/core/config/IntroscopeAgent.profile
     sync
-
+  
     cd $INS_DIR
     ./APMIACtrl.sh force_start
 else

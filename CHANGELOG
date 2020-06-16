@@ -1,3 +1,6 @@
+2020-06-16 8d09c0c Joerg Mertin Added support for extensionm implant.
+2020-06-16 3668b75 Joerg Mertin Added support for mysql extension implant
+2020-06-09 9f58357 Joerg Mertin Documentation update
 2020-06-09 629abaa Joerg Mertin Moved to ubuntu 18.04 due to glibc issues in alpine.
 2020-06-09 81169f0 Joerg Mertin Various updates to take care of different behavior of tar binary accross distributions and doc fixes.
 2020-06-09 52f7757 Joerg Mertin Added build info files.

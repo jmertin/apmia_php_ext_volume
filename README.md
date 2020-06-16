@@ -1,4 +1,4 @@
-# apmia_php_ext_volume 1.0-3 by J. Mertin -- joerg.mertin@broadcom.com
+# apmia_php_ext_volume 1.0-4 by J. Mertin -- joerg.mertin@broadcom.com
 Purpose: APMIA Agent/Passive PHP Extension volume for docker
 
 # Description

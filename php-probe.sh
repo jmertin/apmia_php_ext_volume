@@ -83,4 +83,8 @@ echo
 # Actual probe installation happens here
 ./installer.sh $SETAPPNAME $SET_ADH $SET_IAHOST $SET_IOPORT $SET_PHPROOT $SET_EXT $SET_INI $SET_LOGDIR
 
+# cleaning up installer mess
+sed -i 's/\"\"/\"/g' /etc/php.d/wily_php_agent.ini
+
+
 echo "`date`" > /.PHP_PROBE_INSTALLED

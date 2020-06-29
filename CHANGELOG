@@ -1,3 +1,5 @@
+2020-06-16 c3a655b Joerg Mertin Fixed bug in if test.
+2020-06-16 ff7545d Joerg Mertin Added extension support.
 2020-06-16 8d09c0c Joerg Mertin Added support for extensionm implant.
 2020-06-16 3668b75 Joerg Mertin Added support for mysql extension implant
 2020-06-09 9f58357 Joerg Mertin Documentation update

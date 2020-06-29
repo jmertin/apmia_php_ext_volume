@@ -59,7 +59,8 @@ To correctly use this image, the following steps must be undertaken:
    One APM IA needs to run to collect the data from the PHP Probes
 2. Install the APM PHP Probe (Deploying as PHP Probe) one or more times. This requires:   
    - mount the /opt/apmia volume of the deployed APMIA Agent into the deployed container hosting the PHP application
-   - Modify the startup script of PHP Application container to include the implantation of the PHP probe into the PHP configuration
+   - Identify the ENTRYPOINT of the main application
+   - Subseed the ENTRYPOINT with the apmia-image provided one
 
 
 ### Deploying as a APMIA Agent
@@ -117,6 +118,7 @@ version: '2'
       - PHP_LOGDIR=/var/log
       - PHP_IAHOST=apmia_container
       - PHP_IAPORT=5005
+      - ENTRYPOINT=/run.sh
     volumes_from:
       - apmia-php-vol:rw
 ```   
@@ -138,21 +140,14 @@ To influence the installation of the PHP probe, one can use the following variab
 - PHP_LOGDIR: PHP probe agent logs directory. WARNING: As this is a shared VOLUME, do not set the log directory to be in it!
 - PHP_DEPLOY [true:false]: Trigger to install the probe
 - PHP_PROBE_DIR: Directory the probe files exists. Defaults to /opt/apmia
+- ENTRYPOINT: This points to the original entrypoint defined in the application image at build time. Identify it using the docker describe call with:   
+```
+$ docker inspect 900c9593e313 | grep ENTRYPOINT
+                "ENTRYPOINT ["/run.sh"]"
+```   
+Note: Sometimes the image uses a CMD instead of ENTRYPOINT. In that case, search for CMD and use that one instead.
 
-For the php-probe to be implanted, the following code/script snippet has to be implanted into the "application" image run script, before the php-functionality is activated:
-```
-if [ "$PHP_DEPLOY" = "true" ]
-then
-    if [ -x ${PHP_PROBE_DIR:-/opt/apmia}/php-probe.sh ]
-    then
-       # Execute php-probe.sh
-       /bin/sh ${PHP_PROBE_DIR:-/opt/apmia}/php-probe.sh
-    else
-       echo "*** FATAL: PHP deployment enabled, but probe-installer not found. Exiting!"
-    fi
-fi
-```
-Without that code snippet, the probe cannot be deployed.
+
 
 ### Building the apmia image
 
@@ -161,7 +156,7 @@ of the PHP enabled APMIA package. Got to your DX APM SaaS Tenant, and
 on the left side, into the "Agents" section => "Download
 Agents". Under Applications select the "PHP" application.   
    
-**NOTE**: The  **build_image.cfg** will be created on first run if non existent. The URL however nedes to be provided by the user.   
+**NOTE**: The  **build_image.cfg** will be created on first run if non existent. The URL however needs to be provided by the user.   
    
 Open the "Command line Download" entry - and extract the URL and apply
 it to the FILE Variable in the build_image.cfg file.
@@ -183,68 +178,126 @@ Launch the build script - it will ask which steps to perform:
 ```
 jmertin@calypso:~/docker/apmia_php_ext_volume$ ./build_image.sh 
 
->>> Download latest APMIA/PHP archive [y/n]?: n
+>>> Download latest APMIA/PHP archive [y/n]?: y
+--2020-06-29 14:05:09--  https://apmgw.dxi-na1.saas.broadcom.com/acc/apm/acc/downloadpackage/55289?format=archive&layout=bootstrap_preferred&packageDownloadSecurityToken=233d4809807d21d1b24ae54639eede42f519dcbe35ca71d51bd051bca59c6a68
+Resolving apmgw.dxi-na1.saas.broadcom.com (apmgw.dxi-na1.saas.broadcom.com)... 35.186.161.12
+Connecting to apmgw.dxi-na1.saas.broadcom.com (apmgw.dxi-na1.saas.broadcom.com)|35.186.161.12|:443... connected.
+HTTP request sent, awaiting response... 200 
+Length: unspecified [application/x-tar]
+Saving to: ‘PHP-apmia-20200616_v1.tar’
+
+PHP-apmia-20200616_v1.tar                      [                                                                                 <=>     ] 165,46M  9,50MB/s    in 17s     
+
+2020-06-29 14:05:28 (9,67 MB/s) - ‘PHP-apmia-20200616_v1.tar’ saved [173494784]
+
 apmia/manifest.txt
-Updating tar archive. Adding php-probe.sh
-Found PHP Monitor 20.1.0.44!
+Found PHP Monitor 20.4.0.17!
 
 >>> Build APMIA/PHP image [y/n]?: y
 
 *** If you want to apply OS Update, don't use the cache.
 >>> Use cache for build [y/n]?: n
-Sending build context to Docker daemon  204.3MB
-Step 1/9 : FROM jeanblanchard/alpine-glibc:latest
- ---> 9c75e1ac1042
-Step 2/9 : ARG PHP_EXTENSION_VER
- ---> Running in f8fdb81f1dc0
-Removing intermediate container f8fdb81f1dc0
- ---> 931a0fdbfbe6
-Step 3/9 : ARG PHP_EXTENSION_FILE
- ---> Running in 54a151fc7dda
-Removing intermediate container 54a151fc7dda
- ---> ba87ab3637f4
-Step 4/9 : RUN mkdir -p /opt/apmia
- ---> Running in c5e931136b2f
-Removing intermediate container c5e931136b2f
- ---> 621e84efbf1f
-Step 5/9 : COPY $PHP_EXTENSION_FILE /opt/${PHP_EXTENSION_FILE}.bin
- ---> 8198aa056ea4
-Step 6/9 : ADD run.sh /
- ---> 63ded25baa16
-Step 7/9 : RUN apk add bash nano && tar xf /opt/${PHP_EXTENSION_FILE}.bin -C /opt && rm -f /opt/${PHP_EXTENSION_FILE}.bin
- ---> Running in a3c4f2834a2b
-fetch http://dl-cdn.alpinelinux.org/alpine/v3.11/main/x86_64/APKINDEX.tar.gz
-fetch http://dl-cdn.alpinelinux.org/alpine/v3.11/community/x86_64/APKINDEX.tar.gz
-(1/6) Installing ncurses-terminfo-base (6.1_p20200118-r2)
-(2/6) Installing ncurses-libs (6.1_p20200118-r2)
-(3/6) Installing readline (8.0.1-r0)
-(4/6) Installing bash (5.0.11-r1)
-Executing bash-5.0.11-r1.post-install
-(5/6) Installing libmagic (5.37-r1)
-(6/6) Installing nano (4.6-r0)
-Executing busybox-1.31.1-r9.trigger
-Executing glibc-bin-2.31-r0.trigger
-/usr/glibc-compat/sbin/ldconfig: /usr/glibc-compat/lib/ld-linux-x86-64.so.2 is not a symbolic link
+Sending build context to Docker daemon    348MB
+Step 1/12 : FROM ubuntu:18.04
+ ---> c3c304cb4f22
+Step 2/12 : ARG PHP_EXTENSION_VER
+ ---> Running in 4fbcd628495a
+Removing intermediate container 4fbcd628495a
+ ---> 0625ca7e90c9
+Step 3/12 : ARG PHP_EXTENSION_FILE
+ ---> Running in e76aeda84e2f
+Removing intermediate container e76aeda84e2f
+ ---> d00891a8061c
+Step 4/12 : RUN mkdir -p /opt/apmia
+ ---> Running in ba4a42668e8b
+Removing intermediate container ba4a42668e8b
+ ---> 71c2a7f1ad20
+Step 5/12 : COPY $PHP_EXTENSION_FILE /opt/${PHP_EXTENSION_FILE}.bin
+ ---> c7b4d0d03fee
+Step 6/12 : ADD php-probe.sh /opt/apmia/php-probe.sh
+ ---> b9dab15f8295
+Step 7/12 : ADD run.sh /opt/apmia/run.sh
+ ---> 347aceee4675
+Step 8/12 : ADD extensions/deploy_extension.sh /opt/apmia/deploy_extension.sh
+ ---> 0fab80ab9f05
+Step 9/12 : RUN apt update &&  apt -y install bash nano && apt clean && tar xf /opt/${PHP_EXTENSION_FILE}.bin -C /opt && rm -f /opt/${PHP_EXTENSION_FILE}.bin
+ ---> Running in 1b36b17fdaa1
 
-OK: 25 MiB in 23 packages
-Removing intermediate container a3c4f2834a2b
- ---> 0c0861b0268d
-Step 8/9 : RUN chmod g+w -R /opt/apmia /run.sh && chmod 555 /run.sh
- ---> Running in be4570b9cc76
-Removing intermediate container be4570b9cc76
- ---> 7776cc921fae
-Step 9/9 : CMD /run.sh
- ---> Running in 8994348c1bd1
-Removing intermediate container 8994348c1bd1
- ---> 2e45076a06c3
-Successfully built 2e45076a06c3
+WARNING: apt does not have a stable CLI interface. Use with caution in scripts.                                                                                             
+
+Get:1 http://security.ubuntu.com/ubuntu bionic-security InRelease [88.7 kB]
+Get:2 http://archive.ubuntu.com/ubuntu bionic InRelease [242 kB]
+Get:3 http://archive.ubuntu.com/ubuntu bionic-updates InRelease [88.7 kB]
+Get:4 http://archive.ubuntu.com/ubuntu bionic-backports InRelease [74.6 kB]
+Get:5 http://security.ubuntu.com/ubuntu bionic-security/main amd64 Packages [977 kB]
+Get:6 http://archive.ubuntu.com/ubuntu bionic/main amd64 Packages [1344 kB]
+Get:7 http://security.ubuntu.com/ubuntu bionic-security/universe amd64 Packages [863 kB]
+Get:8 http://security.ubuntu.com/ubuntu bionic-security/restricted amd64 Packages [82.2 kB]
+Get:9 http://security.ubuntu.com/ubuntu bionic-security/multiverse amd64 Packages [9012 B]
+Get:10 http://archive.ubuntu.com/ubuntu bionic/universe amd64 Packages [11.3 MB]
+Get:11 http://archive.ubuntu.com/ubuntu bionic/multiverse amd64 Packages [186 kB]
+Get:12 http://archive.ubuntu.com/ubuntu bionic/restricted amd64 Packages [13.5 kB]
+Get:13 http://archive.ubuntu.com/ubuntu bionic-updates/restricted amd64 Packages [93.8 kB]
+Get:14 http://archive.ubuntu.com/ubuntu bionic-updates/universe amd64 Packages [1398 kB]
+Get:15 http://archive.ubuntu.com/ubuntu bionic-updates/main amd64 Packages [1271 kB]
+Get:16 http://archive.ubuntu.com/ubuntu bionic-updates/multiverse amd64 Packages [13.4 kB]
+Get:17 http://archive.ubuntu.com/ubuntu bionic-backports/universe amd64 Packages [8158 B]
+Get:18 http://archive.ubuntu.com/ubuntu bionic-backports/main amd64 Packages [8286 B]
+Fetched 18.1 MB in 1s (12.5 MB/s)
+Reading package lists...
+Building dependency tree...
+Reading state information...
+5 packages can be upgraded. Run 'apt list --upgradable' to see them.
+
+WARNING: apt does not have a stable CLI interface. Use with caution in scripts.                                                                                             
+
+Reading package lists...
+Building dependency tree...
+Reading state information...
+bash is already the newest version (4.4.18-2ubuntu1.2).
+Suggested packages:
+  spell
+The following NEW packages will be installed:
+  nano
+0 upgraded, 1 newly installed, 0 to remove and 5 not upgraded.
+Need to get 231 kB of archives.
+After this operation, 778 kB of additional disk space will be used.
+Get:1 http://archive.ubuntu.com/ubuntu bionic/main amd64 nano amd64 2.9.3-2 [231 kB]
+debconf: delaying package configuration, since apt-utils is not installed
+Fetched 231 kB in 0s (1893 kB/s)
+Selecting previously unselected package nano.
+(Reading database ... 4046 files and directories currently installed.)
+Preparing to unpack .../nano_2.9.3-2_amd64.deb ...
+Unpacking nano (2.9.3-2) ...
+Setting up nano (2.9.3-2) ...
+update-alternatives: using /bin/nano to provide /usr/bin/editor (editor) in auto mode
+update-alternatives: warning: skip creation of /usr/share/man/man1/editor.1.gz because associated file /usr/share/man/man1/nano.1.gz (of link group editor) doesn't exist
+update-alternatives: using /bin/nano to provide /usr/bin/pico (pico) in auto mode
+update-alternatives: warning: skip creation of /usr/share/man/man1/pico.1.gz because associated file /usr/share/man/man1/nano.1.gz (of link group pico) doesn't exist
+
+WARNING: apt does not have a stable CLI interface. Use with caution in scripts.
+
+Removing intermediate container 1b36b17fdaa1
+ ---> 22400f8a483c
+Step 10/12 : COPY extensions/mysql-20.4.0.17-dd040260xt1.tar.gz /opt/apmia/extensions/deploy/mysql-20.4.0.17-dd040260xt1.tar.gz
+ ---> 68f94bb4f3b2
+Step 11/12 : RUN chmod g+w -R /opt/apmia && chmod 555 /opt/apmia/run.sh /opt/apmia/php-probe.sh /opt/apmia/deploy_extension.sh
+ ---> Running in 8aa4c99389d6
+Removing intermediate container 8aa4c99389d6
+ ---> f10b648ab942
+Step 12/12 : CMD /opt/apmia/run.sh
+ ---> Running in fb1786d91f96
+Removing intermediate container fb1786d91f96
+ ---> 3451e364b57b
+Successfully built 3451e364b57b
 Successfully tagged mertin/apmia_php_ext_volume:latest
-tagging to mertin/apmia_php_ext_volume:20.1.0.44
+*** Tagging image to mertin/apmia_php_ext_volume:20.4.0.17
+jmertin@calypso:~/docker/apmia_php_ext_volume$
 ```
 
 The image will be created and the version tag applied to the image tag.
 ```
 jmertin@calypso:~/docker/apmia_php_ext_volume$ docker images | grep apmia_php
-mertin/apmia_php_ext_volume   20.1.0.44                  2e45076a06c3        22 seconds ago      639MB
-mertin/apmia_php_ext_volume   latest                     2e45076a06c3        22 seconds ago      639MB
+mertin/apmia_php_ext_volume   20.4.0.17                  3451e364b57b        2 minutes ago       614MB
+mertin/apmia_php_ext_volume   latest                     3451e364b57b        2 minutes ago       614MB
 ```

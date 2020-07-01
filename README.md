@@ -4,16 +4,11 @@ Purpose: APMIA Agent/Passive PHP Extension volume for docker
 # Description
 ### Image description
 
-This image build kit will create a passive image containing the PHP
-extension and/or APMIA Agent that can be started by a container at
-will.   
-   
-Depending on its deployment, it will implant the php-probe, or start
-up an APMIA collector already configured and connected to the DX APM
-SaaS environment it was downloaded from.
+This image build kit will create a passive image containing the PHP extension and/or APMIA Agent that can be started by a container at will.   
 
-Note that because most PHP installations connect to a database, an
-optional mysql extension implant support has been added.
+Depending on its deployment, it will implant the php-probe, or start up an APMIA collector already configured and connected to the DX APM SaaS environment it was downloaded from.
+
+Note that because most PHP installations connect to a database, an optional mysql extension implant support has been added.
 
 ### Functional description of the PHP Agent/Probe
 
@@ -103,10 +98,10 @@ In the configuration, the following can be influenced:
 
 If the APMIA_DEPLOY tag is set to "true" - the APMIA Infrastructure Agent will deploy. If it is set to "false" this image will remain passive (no application will be run.   
 
-**NOTE**: In passive mode, the container will exist and have a "Exit" status. This is normal!   
-   
+**NOTE**: In passive mode, the container will exist and show an "Exit" status. This is normal! Do not delete it!   
 
-### Deploying as PHP Probe 
+
+### Deploying to implant the PHP Probe 
 
 In a docker-compose file - set version to '2' - one needs to create a passive volume inclusion.
 
@@ -114,21 +109,22 @@ Even if you don't deploy the APMIA Container, it will have to exist in the docke
 If you don't want a APMIA Agent to run, set the "APMIA_DEPLOY=false". This will cause it to be a passive image.   
 
 
-And in the application one wants to mount the passive image, add in the "volumes_from" section and the "environment" section:
+And in the application one wants to mount the passive image, add the following. Take into account that:
 ```
 version: '2'
 [...]
-    environment:
+    entrypoint: /opt/apmia/run.sh    # This tells the docker-compose to use a different entry-points
+    environment:                     # The environment to configure the PHP Probe are defined here.
       - PHP_DEPLOY=true
       - PHP_APPNAME=PCM_App
       - PHP_AGENT_DISPLAYED_HOSTNAME=pcm-dev
       - PHP_LOGDIR=/var/log
       - PHP_IAHOST=apmia_container
       - PHP_IAPORT=5005
-      - ENTRYPOINT=/run.sh
+      - ENTRYPOINT=/run.sh           # The entrypoint to use once the PHP Probe implant is done.
     volumes_from:
       - apmia-php-vol:rw
-```   
+```
 **Note**: In case the mount directory is not /opt/apmia - the installer script needs to be modified!   
 **Note 2**: The PHP_IAHOST needs to match the container-name of the APMIA container or the APMIA Host!   
 **Note 3**: The "apmia-php-vol" refers to APMIA Agent section (see "Deploying as a APMIA Agent").   
@@ -151,32 +147,10 @@ To influence the installation of the PHP probe, one can use the following variab
 ```
 $ docker inspect 900c9593e313 | grep ENTRYPOINT
                 "ENTRYPOINT ["/run.sh"]"
-```   
+```
 Note: Sometimes the image uses a CMD instead of ENTRYPOINT. In that case, search for CMD and use that one instead.
 
 
-### Adding the mysql extension
-
-Downloading of the mysql extension with the PHP extension at the same time is not possible.   
-You havee to download the Infrastructure Agent with MySQL support.   
-Once downloaded, identify the full path of the mysql-extension with:
-```
-jmertin@calypso:~/tmp$ tar tvf MySQL-apmia-20200701_v1.tar | grep deploy/mysql
--rw-r--r-- 0/0            8287 2020-07-01 11:59 apmia/extensions/deploy/mysql-dd040260xt4-20.6.0.28.tar.gz
-jmertin@calypso:~/tmp$ 
-```
-and extract it with:
-```
-jmertin@calypso:~/tmp$ tar xvf MySQL-apmia-20200701_v1.tar  apmia/extensions/deploy/mysql-dd040260xt4-20.6.0.28.tar.gz --strip-components=3
-apmia/extensions/deploy/mysql-dd040260xt4-20.6.0.28.tar.gz
-jmertin@calypso:~/tmp$ ls -l mysql-dd040260xt4-20.6.0.28.tar.gz 
--rw-r--r-- 1 jmertin jmertin 8287 Jul  1 11:59 mysql-dd040260xt4-20.6.0.28.tar.gz
-jmertin@calypso:~/tmp$ 
-```
-
-Copy the mysql-dd040260xt4-20.6.0.28.tar.gz to extensions directory and you're set.
-
-Note: You do not have to configure the mysql extension at the download page. It will be configured through the docker-environment variables.
 
 
 ### Building the apmia image
@@ -185,9 +159,9 @@ To create the APMIA Image, one need to provide the CLI Download link
 of the PHP enabled APMIA package. Got to your DX APM SaaS Tenant, and
 on the left side, into the "Agents" section => "Download
 Agents". Under Applications select the "PHP" application.   
-   
+
 **NOTE**: The  **build_image.cfg** will be created on first run if non existent. The URL however needs to be provided by the user.   
-   
+
 Open the "Command line Download" entry - and extract the URL and apply it to the PHP_FILE Variable in the build_image.cfg file.
 
 From the displayed:
@@ -199,12 +173,29 @@ extract only the URL
 https://apmgw.dxi-na1.saas.broadcom.com/acc/apm/acc/downloadpackage/43107?format=archive&layout=bootstrap_preferred&packageDownloadSecurityToken=233d4809807d21d1b24ae54639eede42f519dcbe35ca71d51bd051bca59c6a68
 ```
 
-You can download the Agent manually but will have to upload it into
-the build directory - named as downloaded, for example:
-"PHP-apmia-20200326_v1.tar"
+Note: You can download the Agent manually but will have to upload it into the build directory - named as downloaded, for example:   
+```
+PHP-apmia-20200326_v1.tar
+```
 
-You can do the same for the MySQL-apmia Agent   
+#### Adding the mysql extension
 
+Downloading of the mysql extension with the PHP extension at the same time is not possible through the Admin interface.    
+
+To have the mysql extension implanted, the build-script needs the APMIA with MySQL Extension CLI link. Got to your DX APM SaaS Tenant, and on the left side, into the "Agents" section => "Download Agents". Under Infrastructure  select the "MySQL" application.
+
+Open the "Command line Download" entry - and extract the URL and apply it to the MYSQL_FILE Variable in the build_image.cfg file.
+
+Note: You do not have to configure the mysql extension at the download page. It will be configured through the docker-environment variables.
+
+Note: You can download the Agent manually but will have to upload it to the build directory - names as downloaded, for example:   
+```
+MySQL-apmia-20200701_v1.tar
+```
+
+
+
+### The actual build process
 
 Launch the build script - it will ask which steps to perform:
 ```
@@ -316,7 +307,7 @@ Successfully tagged mertin/apmia_php_ext_volume:latest
 ```
 
 The image will be created and the version tag applied to the image tag.
-```
+```english
 jmertin@calypso:~/docker/apmia_php_ext_volume$ docker images | grep apmia_php
 mertin/apmia_php_ext_volume   20.6.0.28                  5ac5bd62053a        3 minutes ago       619MB
 mertin/apmia_php_ext_volume   latest                     5ac5bd62053a        3 minutes ago       619MB

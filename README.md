@@ -318,8 +318,10 @@ Successfully tagged mertin/apmia_php_ext_volume:latest
 The image will be created and the version tag applied to the image tag.
 ```
 jmertin@calypso:~/docker/apmia_php_ext_volume$ docker images | grep apmia_php
-mertin/apmia_php_ext_volume   20.4.0.17                  3451e364b57b        2 minutes ago       614MB
-mertin/apmia_php_ext_volume   latest                     3451e364b57b        2 minutes ago       614MB
+mertin/apmia_php_ext_volume   20.6.0.28                  5ac5bd62053a        3 minutes ago       619MB
+mertin/apmia_php_ext_volume   latest                     5ac5bd62053a        3 minutes ago       619MB
+mertin/apmia_php_ext_volume   20.4.0.17                  9389946ca153        3 hours ago         614MB
+mertin/apmia_php_ext_volume   20.1.0.44                  d9789ba11ae3        3 months ago        639MB
 ```
 
 

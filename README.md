@@ -113,15 +113,15 @@ And in the application one wants to mount the passive image, add the following. 
 ```
 version: '2'
 [...]
-    entrypoint: /opt/apmia/run.sh    # This tells the docker-compose to use a different entry-points
-    environment:                     # The environment to configure the PHP Probe are defined here.
+    entrypoint: /opt/apmia/run.sh    # This tells the docker-compose to use a different entry-point
+    environment:                     # The environment to configure the PHP Probe are defined here
       - PHP_DEPLOY=true
       - PHP_APPNAME=PCM_App
       - PHP_AGENT_DISPLAYED_HOSTNAME=pcm-dev
       - PHP_LOGDIR=/var/log
       - PHP_IAHOST=apmia_container
       - PHP_IAPORT=5005
-      - ENTRYPOINT=/run.sh           # The entrypoint to use once the PHP Probe implant is done.
+      - ENTRYPOINT=/run.sh           # The entrypoint to use once the PHP Probe implant is done
     volumes_from:
       - apmia-php-vol:rw
 ```

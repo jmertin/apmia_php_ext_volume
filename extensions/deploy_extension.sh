@@ -40,26 +40,6 @@ then
 	    errlvl=$err # catch error level in case we have an issue
 	fi
 
-	module=""
-	# Extract package name to define the configuration prefix
-	# We assume there are only 4 elements in extension name
-	for num in 1 2 3 4
-	do
-	    part=`echo $file | cut -d '-' -f $num`
-	    check=`echo "$part" | grep -E ^\[0-9]+\.`
-	    # Check if we are a non-Numeric string
-	    if [ "$check" == '' ]
-	    then
-		module=${module}${part}-
-		separator="-"
-	    else
-		break
-	    fi
-	done
-	# Remove trailing -
-	module=`echo $module | sed -e 's/\-$//g'`
-	echo $module
-
 	# Create .deployment file
 	echo "Name: $DIRNAME" > ${EXT_DIR}/${DIRNAME}/.deployment
 	echo "InstallDate: `date -u`" >> ${EXT_DIR}/${DIRNAME}/.deployment
@@ -70,19 +50,16 @@ then
 	echo "You can configure the following properties in the docker-compose/yaml file"
 	echo "Prepend a: "
 
-	grep "introscope.agent.dbmonitor.${module}." ${EXT_DIR}/${DIRNAME}/bundle.properties | grep -v ^# | sed -e 's/\./_/g' | cut -d '=' -f 1 
+	grep "introscope.agent.dbmonitor.${prefix}." ${EXT_DIR}/${DIRNAME}/bundle.properties | grep -v ^# | sed -e 's/\./_/g' | cut -d '=' -f 1 
 	echo
 	# Backing up bundle-properties file
 	# mv ${EXT_DIR}/${DIRNAME}/bundle.properties ${EXT_DIR}/${DIRNAME}/bundle.properties.bak
 	echo "# $DIRNAME `date -u` by extension installer " > ${EXT_DIR}/${DIRNAME}/bundle.properties
 
-	# We need to include only module specific Variables
-	capmodule=`echo $module`
-
 	# Cycle through existing configuration in Environment and extract
 	# it, convert it Upper to Lower and replace the _ by ., finaly
 	# write it to configuration file.
-	for env in `set | grep introscope_agent_dbmonitor_${capmodule}`
+	for env in `set | grep introscope_agent_dbmonitor_${prefix}`
 	do
 	    varname=`echo $env | cut -d '=' -f 1`
 	    var=`echo $env | cut -d '=' -f 2`

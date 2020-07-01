@@ -54,7 +54,7 @@ else
 	then
 	    if [ -x ${PHP_PROBE_DIR:-/opt/apmia}/php-probe.sh ]
 	    then
-		echo "* Implanting probe"
+		echo " * Implanting PHP probe"
 		# Execute php-probe.sh
 		/bin/sh ${PHP_PROBE_DIR:-/opt/apmia}/php-probe.sh
 	    else
@@ -62,7 +62,7 @@ else
 	    fi
 	fi
 
-	echo "* Executing real ENTRYPOINT: $ENTRYPOINT"
+	echo " * Handing over to real ENTRYPOINT: $ENTRYPOINT"
 	# Execute real Entrypoint. Make sure it hooks itself to the shell.
 	$ENTRYPOINT
     else

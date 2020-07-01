@@ -1,3 +1,12 @@
+2020-07-01 eb8ddf3 Joerg Mertin Replaced build example.
+2020-07-01 958df81 Joerg Mertin Updated docs.
+2020-07-01 21a5488 Joerg Mertin Added support for MySQL-apmia file.
+2020-07-01 dcdfb14 Joerg Mertin Corrected the WARN Tag
+2020-07-01 4957990 Joerg Mertin Corrected the WARN Tag
+2020-07-01 76bb27c Joerg Mertin Added support for optional mysql-extension
+2020-07-01 2a1d849 Joerg Mertin Some cosmetic changes
+2020-07-01 8c9552f Joerg Mertin MdeMade sure the configuration parameters do not get mangled.
+2020-06-29 bb612b0 Joerg Mertin Changed implant method using the entrypoint superseed method
 2020-06-16 c3a655b Joerg Mertin Fixed bug in if test.
 2020-06-16 ff7545d Joerg Mertin Added extension support.
 2020-06-16 8d09c0c Joerg Mertin Added support for extensionm implant.

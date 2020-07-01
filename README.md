@@ -1,4 +1,4 @@
-# apmia_php_ext_volume 2.0-5 by J. Mertin -- joerg.mertin@broadcom.com
+# apmia_php_ext_volume 2.0-6 by J. Mertin -- joerg.mertin@broadcom.com
 Purpose: APMIA Agent/Passive PHP Extension volume for docker
 
 # Description
@@ -11,6 +11,9 @@ will.
 Depending on its deployment, it will implant the php-probe, or start
 up an APMIA collector already configured and connected to the DX APM
 SaaS environment it was downloaded from.
+
+Note that because most PHP installations connect to a database, an
+optional mysql extension implant support has been added.
 
 ### Functional description of the PHP Agent/Probe
 
@@ -27,7 +30,7 @@ The general approach to deploy the PHP Agent/Probe in an environment is as follo
     - receives monitoring data from the PHP probe (Installed at the WebServer Level/PHP section)
 3. Deploy the PHP probe into one or more PHP installations. The probe captures monitoring data and sends them to the PHP extension (on port 5005 - by default)
 
-**Note**: One IA (Infrastructure Agent) with the PHP Extension can receive monitoring data from multiple PHP Probes.   
+**Note**: One APM IA (Infrastructure Agent) with the PHP Extension can receive monitoring data from multiple PHP Probes.   
 To save resources you can therefore deploy only one IA with the PHP extension to serve multiple PHP probes.
 Because the IA is heavyweight (Java) and the PHP probe is lightweight, about ~3MBytes).   
 **Note 2**: Reduce the network path/hops the PHP Probe has to pass to transfer its findings to the IA (Infrastructure Agent). The network induce I/O can have an impact on the overall network infrastructure on highly loaded WebServers. The best approach is to use one IA per physical machine in the Docker cluster.
@@ -38,7 +41,7 @@ This documentation describes how to deploy an IA in a docker container and how t
 
 #### Dependency
 
-None. It provides the PHP Probe and the APMIA Agent.
+None. Required the download links to PHP-APMIA Agent, and MySQL-apmia agent
 
 #### Restrictions
 
@@ -82,7 +85,7 @@ Add the following into the docker-compose file:
       - APMIA_DEPLOY=true
       - APMIA_AGENT_DISPLAYED_HOSTNAME=apmia-pod
       - APMIA_APP_NAME=php-collector
-      - APMIA_LOG_LEVEL=WARNING
+      - APMIA_LOG_LEVEL=WARN
       - APMIA_INTROSCOPE_AGENTNAME=apmia
     volumes:
       - /opt/apmia
@@ -95,7 +98,7 @@ In the configuration, the following can be influenced:
 - APMIA_DEPLOY [true|false]: Instructs the start script to either launch the APMIA Agent, or simply skip it and return a true exit value. Defaults to false
 - APMIA_AGENT_DISPLAYED_HOSTNAME [default: apmia-container]: Hostname, default toi apmia-container. Docker will always create a random 16char hostname which looks bad in the Investigator.
 - APMIA_APP_NAME [default: php-collector]: Application name, defaults to php-collector
-- APMIA_LOG_LEVEL [default: WARNING] Log level is set to WARNING by default, to keep chattiness low.
+- APMIA_LOG_LEVEL [default: WARN] Log level is set to WARN by default, to keep chattiness low.
 - APMIA_INTROSCOPE_AGENTNAME [default: apmia]: Agent name
 
 If the APMIA_DEPLOY tag is set to "true" - the APMIA Infrastructure Agent will deploy. If it is set to "false" this image will remain passive (no application will be run.   
@@ -152,6 +155,29 @@ $ docker inspect 900c9593e313 | grep ENTRYPOINT
 Note: Sometimes the image uses a CMD instead of ENTRYPOINT. In that case, search for CMD and use that one instead.
 
 
+### Adding the mysql extension
+
+Downloading of the mysql extension with the PHP extension at the same time is not possible.   
+You havee to download the Infrastructure Agent with MySQL support.   
+Once downloaded, identify the full path of the mysql-extension with:
+```
+jmertin@calypso:~/tmp$ tar tvf MySQL-apmia-20200701_v1.tar | grep deploy/mysql
+-rw-r--r-- 0/0            8287 2020-07-01 11:59 apmia/extensions/deploy/mysql-dd040260xt4-20.6.0.28.tar.gz
+jmertin@calypso:~/tmp$ 
+```
+and extract it with:
+```
+jmertin@calypso:~/tmp$ tar xvf MySQL-apmia-20200701_v1.tar  apmia/extensions/deploy/mysql-dd040260xt4-20.6.0.28.tar.gz --strip-components=3
+apmia/extensions/deploy/mysql-dd040260xt4-20.6.0.28.tar.gz
+jmertin@calypso:~/tmp$ ls -l mysql-dd040260xt4-20.6.0.28.tar.gz 
+-rw-r--r-- 1 jmertin jmertin 8287 Jul  1 11:59 mysql-dd040260xt4-20.6.0.28.tar.gz
+jmertin@calypso:~/tmp$ 
+```
+
+Copy the mysql-dd040260xt4-20.6.0.28.tar.gz to extensions directory and you're set.
+
+Note: You do not have to configure the mysql extension at the download page. It will be configured through the docker-environment variables.
+
 
 ### Building the apmia image
 
@@ -162,8 +188,7 @@ Agents". Under Applications select the "PHP" application.
    
 **NOTE**: The  **build_image.cfg** will be created on first run if non existent. The URL however needs to be provided by the user.   
    
-Open the "Command line Download" entry - and extract the URL and apply
-it to the FILE Variable in the build_image.cfg file.
+Open the "Command line Download" entry - and extract the URL and apply it to the PHP_FILE Variable in the build_image.cfg file.
 
 From the displayed:
 ```
@@ -178,82 +203,74 @@ You can download the Agent manually but will have to upload it into
 the build directory - named as downloaded, for example:
 "PHP-apmia-20200326_v1.tar"
 
+You can do the same for the MySQL-apmia Agent   
+
+
 Launch the build script - it will ask which steps to perform:
 ```
 jmertin@calypso:~/docker/apmia_php_ext_volume$ ./build_image.sh 
 
->>> Download latest APMIA/PHP archive [y/n]?: y
---2020-06-29 14:05:09--  https://apmgw.dxi-na1.saas.broadcom.com/acc/apm/acc/downloadpackage/55289?format=archive&layout=bootstrap_preferred&packageDownloadSecurityToken=233d4809807d21d1b24ae54639eede42f519dcbe35ca71d51bd051bca59c6a68
-Resolving apmgw.dxi-na1.saas.broadcom.com (apmgw.dxi-na1.saas.broadcom.com)... 35.186.161.12
-Connecting to apmgw.dxi-na1.saas.broadcom.com (apmgw.dxi-na1.saas.broadcom.com)|35.186.161.12|:443... connected.
-HTTP request sent, awaiting response... 200 
-Length: unspecified [application/x-tar]
-Saving to: ‘PHP-apmia-20200616_v1.tar’
-
-PHP-apmia-20200616_v1.tar                      [                                                                                 <=>     ] 165,46M  9,50MB/s    in 17s     
-
-2020-06-29 14:05:28 (9,67 MB/s) - ‘PHP-apmia-20200616_v1.tar’ saved [173494784]
-
-apmia/manifest.txt
-Found PHP Monitor 20.4.0.17!
+>>> Download latest APMIA/PHP/MySQL archive [y/n]?: n
+>>> Found PHP Monitor 20.6.0.28!
+>>> Found mysql-20.4.0.17-dd040260xt1.tar.gz APMIA Extension. Enabling in build.
+*** Make sure the Extension is pre-configured for your MySQL DB you want to monitor!
 
 >>> Build APMIA/PHP image [y/n]?: y
 
 *** If you want to apply OS Update, don't use the cache.
->>> Use cache for build [y/n]?: n
-Sending build context to Docker daemon    348MB
+>>> Use cache for build [y/n]?: y
+Sending build context to Docker daemon  503.3MB
 Step 1/12 : FROM ubuntu:18.04
  ---> c3c304cb4f22
 Step 2/12 : ARG PHP_EXTENSION_VER
- ---> Running in 4fbcd628495a
-Removing intermediate container 4fbcd628495a
- ---> 0625ca7e90c9
+ ---> Using cache
+ ---> a99e2f90b510
 Step 3/12 : ARG PHP_EXTENSION_FILE
- ---> Running in e76aeda84e2f
-Removing intermediate container e76aeda84e2f
- ---> d00891a8061c
+ ---> Using cache
+ ---> 9560a082e86e
 Step 4/12 : RUN mkdir -p /opt/apmia
- ---> Running in ba4a42668e8b
-Removing intermediate container ba4a42668e8b
- ---> 71c2a7f1ad20
+ ---> Using cache
+ ---> ed9d51952451
 Step 5/12 : COPY $PHP_EXTENSION_FILE /opt/${PHP_EXTENSION_FILE}.bin
- ---> c7b4d0d03fee
+ ---> Using cache
+ ---> c0607227c4b3
 Step 6/12 : ADD php-probe.sh /opt/apmia/php-probe.sh
- ---> b9dab15f8295
+ ---> Using cache
+ ---> 83633fdc7204
 Step 7/12 : ADD run.sh /opt/apmia/run.sh
- ---> 347aceee4675
+ ---> a462e62af81e
 Step 8/12 : ADD extensions/deploy_extension.sh /opt/apmia/deploy_extension.sh
- ---> 0fab80ab9f05
+ ---> 88cb34197f92
 Step 9/12 : RUN apt update &&  apt -y install bash nano && apt clean && tar xf /opt/${PHP_EXTENSION_FILE}.bin -C /opt && rm -f /opt/${PHP_EXTENSION_FILE}.bin
- ---> Running in 1b36b17fdaa1
+ ---> Running in ec5544cc387a
 
-WARNING: apt does not have a stable CLI interface. Use with caution in scripts.                                                                                             
+WARNING: apt does not have a stable CLI interface. Use with caution in scripts.                                                                                                                        
 
 Get:1 http://security.ubuntu.com/ubuntu bionic-security InRelease [88.7 kB]
 Get:2 http://archive.ubuntu.com/ubuntu bionic InRelease [242 kB]
 Get:3 http://archive.ubuntu.com/ubuntu bionic-updates InRelease [88.7 kB]
 Get:4 http://archive.ubuntu.com/ubuntu bionic-backports InRelease [74.6 kB]
 Get:5 http://security.ubuntu.com/ubuntu bionic-security/main amd64 Packages [977 kB]
-Get:6 http://archive.ubuntu.com/ubuntu bionic/main amd64 Packages [1344 kB]
-Get:7 http://security.ubuntu.com/ubuntu bionic-security/universe amd64 Packages [863 kB]
+Get:6 http://archive.ubuntu.com/ubuntu bionic/universe amd64 Packages [11.3 MB]
+Get:7 http://security.ubuntu.com/ubuntu bionic-security/multiverse amd64 Packages [9012 B]
 Get:8 http://security.ubuntu.com/ubuntu bionic-security/restricted amd64 Packages [82.2 kB]
-Get:9 http://security.ubuntu.com/ubuntu bionic-security/multiverse amd64 Packages [9012 B]
-Get:10 http://archive.ubuntu.com/ubuntu bionic/universe amd64 Packages [11.3 MB]
-Get:11 http://archive.ubuntu.com/ubuntu bionic/multiverse amd64 Packages [186 kB]
-Get:12 http://archive.ubuntu.com/ubuntu bionic/restricted amd64 Packages [13.5 kB]
-Get:13 http://archive.ubuntu.com/ubuntu bionic-updates/restricted amd64 Packages [93.8 kB]
-Get:14 http://archive.ubuntu.com/ubuntu bionic-updates/universe amd64 Packages [1398 kB]
-Get:15 http://archive.ubuntu.com/ubuntu bionic-updates/main amd64 Packages [1271 kB]
-Get:16 http://archive.ubuntu.com/ubuntu bionic-updates/multiverse amd64 Packages [13.4 kB]
-Get:17 http://archive.ubuntu.com/ubuntu bionic-backports/universe amd64 Packages [8158 B]
-Get:18 http://archive.ubuntu.com/ubuntu bionic-backports/main amd64 Packages [8286 B]
-Fetched 18.1 MB in 1s (12.5 MB/s)
+Get:9 http://security.ubuntu.com/ubuntu bionic-security/universe amd64 Packages [863 kB]
+Get:10 http://archive.ubuntu.com/ubuntu bionic/main amd64 Packages [1344 kB]
+Get:11 http://archive.ubuntu.com/ubuntu bionic/restricted amd64 Packages [13.5 kB]
+Get:12 http://archive.ubuntu.com/ubuntu bionic/multiverse amd64 Packages [186 kB]
+Get:13 http://archive.ubuntu.com/ubuntu bionic-updates/universe amd64 Packages [1403 kB]
+Get:14 http://archive.ubuntu.com/ubuntu bionic-updates/multiverse amd64 Packages [13.6 kB]
+Get:15 http://archive.ubuntu.com/ubuntu bionic-updates/main amd64 Packages [1293 kB]
+Get:16 http://archive.ubuntu.com/ubuntu bionic-updates/restricted amd64 Packages [101 kB]
+Get:17 http://archive.ubuntu.com/ubuntu bionic-backports/main amd64 Packages [8286 B]
+Get:18 http://archive.ubuntu.com/ubuntu bionic-backports/universe amd64 Packages [8158 B]
+Fetched 18.1 MB in 2s (11.4 MB/s)
 Reading package lists...
 Building dependency tree...
 Reading state information...
 5 packages can be upgraded. Run 'apt list --upgradable' to see them.
 
-WARNING: apt does not have a stable CLI interface. Use with caution in scripts.                                                                                             
+WARNING: apt does not have a stable CLI interface. Use with caution in scripts.                                                                                                                        
 
 Reading package lists...
 Building dependency tree...
@@ -268,7 +285,7 @@ Need to get 231 kB of archives.
 After this operation, 778 kB of additional disk space will be used.
 Get:1 http://archive.ubuntu.com/ubuntu bionic/main amd64 nano amd64 2.9.3-2 [231 kB]
 debconf: delaying package configuration, since apt-utils is not installed
-Fetched 231 kB in 0s (1893 kB/s)
+Fetched 231 kB in 0s (1978 kB/s)
 Selecting previously unselected package nano.
 (Reading database ... 4046 files and directories currently installed.)
 Preparing to unpack .../nano_2.9.3-2_amd64.deb ...
@@ -281,22 +298,21 @@ update-alternatives: warning: skip creation of /usr/share/man/man1/pico.1.gz bec
 
 WARNING: apt does not have a stable CLI interface. Use with caution in scripts.
 
-Removing intermediate container 1b36b17fdaa1
- ---> 22400f8a483c
+Removing intermediate container ec5544cc387a
+ ---> 819a1b59b435
 Step 10/12 : COPY extensions/mysql-20.4.0.17-dd040260xt1.tar.gz /opt/apmia/extensions/deploy/mysql-20.4.0.17-dd040260xt1.tar.gz
- ---> 68f94bb4f3b2
+ ---> f80cad78cb23
 Step 11/12 : RUN chmod g+w -R /opt/apmia && chmod 555 /opt/apmia/run.sh /opt/apmia/php-probe.sh /opt/apmia/deploy_extension.sh
- ---> Running in 8aa4c99389d6
-Removing intermediate container 8aa4c99389d6
- ---> f10b648ab942
+ ---> Running in 9c1d051b5094
+Removing intermediate container 9c1d051b5094
+ ---> fbf0f3145203
 Step 12/12 : CMD /opt/apmia/run.sh
- ---> Running in fb1786d91f96
-Removing intermediate container fb1786d91f96
- ---> 3451e364b57b
-Successfully built 3451e364b57b
+ ---> Running in 76a02cf1869d
+Removing intermediate container 76a02cf1869d
+ ---> 5ac5bd62053a
+Successfully built 5ac5bd62053a
 Successfully tagged mertin/apmia_php_ext_volume:latest
-*** Tagging image to mertin/apmia_php_ext_volume:20.4.0.17
-jmertin@calypso:~/docker/apmia_php_ext_volume$
+*** Tagging image to mertin/apmia_php_ext_volume:20.6.0.28
 ```
 
 The image will be created and the version tag applied to the image tag.

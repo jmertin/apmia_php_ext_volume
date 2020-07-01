@@ -70,29 +70,34 @@ then
 	echo "You can configure the following properties in the docker-compose/yaml file"
 	echo "Prepend a: "
 
-	grep "introscope.agent.dbmonitor.${module}."  ${EXT_DIR}/${DIRNAME}/bundle.properties | grep -v ^# | tr '[:lower:]' '[:upper:]' | sed -e 's/\./_/g'
+	grep "introscope.agent.dbmonitor.${module}." ${EXT_DIR}/${DIRNAME}/bundle.properties | grep -v ^# | sed -e 's/\./_/g' | cut -d '=' -f 1 
 	echo
 	# Backing up bundle-properties file
 	# mv ${EXT_DIR}/${DIRNAME}/bundle.properties ${EXT_DIR}/${DIRNAME}/bundle.properties.bak
-	echo "# $DIRNAME `date -u` by extension installer " > ${EXT_DIR}/${DIRNAME}/bundle.properties.bak
+	echo "# $DIRNAME `date -u` by extension installer " > ${EXT_DIR}/${DIRNAME}/bundle.properties
 
 	# We need to include only module specific Variables
-	capmodule=`echo $module | tr '[:lower:]' '[:upper:]'`
+	capmodule=`echo $module`
 
 	# Cycle through existing configuration in Environment and extract
 	# it, convert it Upper to Lower and replace the _ by ., finaly
 	# write it to configuration file.
-	for env in `set | grep INTROSCOPE_AGENT_DBMONITOR_${capmodule}`
+	for env in `set | grep introscope_agent_dbmonitor_${capmodule}`
 	do
 	    varname=`echo $env | cut -d '=' -f 1`
 	    var=`echo $env | cut -d '=' -f 2`
-	    newvarname=`echo $varname | tr '[:upper:]' '[:lower:]' | sed -e 's/_/\./g'`
-	    echo "${newvarname}=${var}" >> ${EXT_DIR}/${DIRNAME}/bundle.properties.bak
+	    newvarname=`echo $varname | sed -e 's/_/\./g'`
+	    echo "${newvarname}=${var}" >> ${EXT_DIR}/${DIRNAME}/bundle.properties
 	done
-
+	
 	# Tell APMIA which exension to load
-	sed -i 's/^introscope\.agent\.extensions\.bundles\.load=/introscope\.agent\.extensions\.bundles\.boot\.load='${DIRNAME}'/g' /opt/apmia/extensions/Extensions.profile
+	if [ ! $DEVEL ]
+	then
+	    sed -i 's/^introscope\.agent\.extensions\.bundles\.load=/introscope\.agent\.extensions\.bundles\.boot\.load='${DIRNAME}'/g' /opt/apmia/extensions/Extensions.profile
+	fi
     done
 else
-    echo "ERROR: Extension $prefix not found. Exiting"
+    echo "ERROR: Extension $prefix not found. "
+    echo "       You may want to add the MySQL Extension to the build"
+    echo "       or set the MYSQL_MONITOR=false flag."
 fi

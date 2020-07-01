@@ -234,35 +234,39 @@ Step 6/12 : ADD php-probe.sh /opt/apmia/php-probe.sh
  ---> Using cache
  ---> 83633fdc7204
 Step 7/12 : ADD run.sh /opt/apmia/run.sh
- ---> ba99ae6a3a16
+ ---> a462e62af81e
 Step 8/12 : ADD extensions/deploy_extension.sh /opt/apmia/deploy_extension.sh
- ---> 668fac059253
+ ---> 88cb34197f92
 Step 9/12 : RUN apt update &&  apt -y install bash nano && apt clean && tar xf /opt/${PHP_EXTENSION_FILE}.bin -C /opt && rm -f /opt/${PHP_EXTENSION_FILE}.bin
- ---> Running in 1f395b38329d
+ ---> Running in ec5544cc387a
 
-Get:1 http://archive.ubuntu.com/ubuntu bionic InRelease [242 kB]
-Get:2 http://archive.ubuntu.com/ubuntu bionic-updates InRelease [88.7 kB]
-Get:3 http://archive.ubuntu.com/ubuntu bionic-backports InRelease [74.6 kB]
-Get:4 http://security.ubuntu.com/ubuntu bionic-security InRelease [88.7 kB]
-Get:5 http://archive.ubuntu.com/ubuntu bionic/main amd64 Packages [1344 kB]
-Get:6 http://archive.ubuntu.com/ubuntu bionic/multiverse amd64 Packages [186 kB]
-Get:7 http://archive.ubuntu.com/ubuntu bionic/restricted amd64 Packages [13.5 kB]
-Get:8 http://archive.ubuntu.com/ubuntu bionic/universe amd64 Packages [11.3 MB]
-Get:9 http://archive.ubuntu.com/ubuntu bionic-updates/restricted amd64 Packages [101 kB]
-Get:10 http://archive.ubuntu.com/ubuntu bionic-updates/main amd64 Packages [1293 kB]
-Get:11 http://archive.ubuntu.com/ubuntu bionic-updates/universe amd64 Packages [1403 kB]
-Get:12 http://archive.ubuntu.com/ubuntu bionic-updates/multiverse amd64 Packages [13.6 kB]
-Get:13 http://archive.ubuntu.com/ubuntu bionic-backports/universe amd64 Packages [8158 B]
-Get:14 http://archive.ubuntu.com/ubuntu bionic-backports/main amd64 Packages [8286 B]
-Get:15 http://security.ubuntu.com/ubuntu bionic-security/multiverse amd64 Packages [9012 B]
-Get:16 http://security.ubuntu.com/ubuntu bionic-security/restricted amd64 Packages [82.2 kB]
-Get:17 http://security.ubuntu.com/ubuntu bionic-security/main amd64 Packages [977 kB]
-Get:18 http://security.ubuntu.com/ubuntu bionic-security/universe amd64 Packages [863 kB]
-Fetched 18.1 MB in 2s (7612 kB/s)
+WARNING: apt does not have a stable CLI interface. Use with caution in scripts.                                                                                                                        
+
+Get:1 http://security.ubuntu.com/ubuntu bionic-security InRelease [88.7 kB]
+Get:2 http://archive.ubuntu.com/ubuntu bionic InRelease [242 kB]
+Get:3 http://archive.ubuntu.com/ubuntu bionic-updates InRelease [88.7 kB]
+Get:4 http://archive.ubuntu.com/ubuntu bionic-backports InRelease [74.6 kB]
+Get:5 http://security.ubuntu.com/ubuntu bionic-security/main amd64 Packages [977 kB]
+Get:6 http://archive.ubuntu.com/ubuntu bionic/universe amd64 Packages [11.3 MB]
+Get:7 http://security.ubuntu.com/ubuntu bionic-security/multiverse amd64 Packages [9012 B]
+Get:8 http://security.ubuntu.com/ubuntu bionic-security/restricted amd64 Packages [82.2 kB]
+Get:9 http://security.ubuntu.com/ubuntu bionic-security/universe amd64 Packages [863 kB]
+Get:10 http://archive.ubuntu.com/ubuntu bionic/main amd64 Packages [1344 kB]
+Get:11 http://archive.ubuntu.com/ubuntu bionic/restricted amd64 Packages [13.5 kB]
+Get:12 http://archive.ubuntu.com/ubuntu bionic/multiverse amd64 Packages [186 kB]
+Get:13 http://archive.ubuntu.com/ubuntu bionic-updates/universe amd64 Packages [1403 kB]
+Get:14 http://archive.ubuntu.com/ubuntu bionic-updates/multiverse amd64 Packages [13.6 kB]
+Get:15 http://archive.ubuntu.com/ubuntu bionic-updates/main amd64 Packages [1293 kB]
+Get:16 http://archive.ubuntu.com/ubuntu bionic-updates/restricted amd64 Packages [101 kB]
+Get:17 http://archive.ubuntu.com/ubuntu bionic-backports/main amd64 Packages [8286 B]
+Get:18 http://archive.ubuntu.com/ubuntu bionic-backports/universe amd64 Packages [8158 B]
+Fetched 18.1 MB in 2s (11.4 MB/s)
 Reading package lists...
 Building dependency tree...
 Reading state information...
 5 packages can be upgraded. Run 'apt list --upgradable' to see them.
+
+WARNING: apt does not have a stable CLI interface. Use with caution in scripts.                                                                                                                        
 
 Reading package lists...
 Building dependency tree...
@@ -277,7 +281,7 @@ Need to get 231 kB of archives.
 After this operation, 778 kB of additional disk space will be used.
 Get:1 http://archive.ubuntu.com/ubuntu bionic/main amd64 nano amd64 2.9.3-2 [231 kB]
 debconf: delaying package configuration, since apt-utils is not installed
-Fetched 231 kB in 0s (1951 kB/s)
+Fetched 231 kB in 0s (1978 kB/s)
 Selecting previously unselected package nano.
 (Reading database ... 4046 files and directories currently installed.)
 Preparing to unpack .../nano_2.9.3-2_amd64.deb ...
@@ -288,19 +292,21 @@ update-alternatives: warning: skip creation of /usr/share/man/man1/editor.1.gz b
 update-alternatives: using /bin/nano to provide /usr/bin/pico (pico) in auto mode
 update-alternatives: warning: skip creation of /usr/share/man/man1/pico.1.gz because associated file /usr/share/man/man1/nano.1.gz (of link group pico) doesn't exist
 
-Removing intermediate container 1f395b38329d
- ---> ac56f6110ff9
+WARNING: apt does not have a stable CLI interface. Use with caution in scripts.
+
+Removing intermediate container ec5544cc387a
+ ---> 819a1b59b435
 Step 10/12 : COPY extensions/mysql-20.4.0.17-dd040260xt1.tar.gz /opt/apmia/extensions/deploy/mysql-20.4.0.17-dd040260xt1.tar.gz
- ---> 877449162c5d
+ ---> f80cad78cb23
 Step 11/12 : RUN chmod g+w -R /opt/apmia && chmod 555 /opt/apmia/run.sh /opt/apmia/php-probe.sh /opt/apmia/deploy_extension.sh
- ---> Running in 07705ba1afe6
-Removing intermediate container 07705ba1afe6
- ---> 950bc7e86125
+ ---> Running in 9c1d051b5094
+Removing intermediate container 9c1d051b5094
+ ---> fbf0f3145203
 Step 12/12 : CMD /opt/apmia/run.sh
- ---> Running in 0167d7abcc2d
-Removing intermediate container 0167d7abcc2d
- ---> 05dbdb2e52f1
-Successfully built 05dbdb2e52f1
+ ---> Running in 76a02cf1869d
+Removing intermediate container 76a02cf1869d
+ ---> 5ac5bd62053a
+Successfully built 5ac5bd62053a
 Successfully tagged mertin/apmia_php_ext_volume:latest
 *** Tagging image to mertin/apmia_php_ext_volume:20.6.0.28
 ```

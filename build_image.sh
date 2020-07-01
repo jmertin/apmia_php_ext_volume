@@ -23,7 +23,7 @@ else
     echo > build_image.cfg
     echo "# Go to the Agent Download Section, select to download the PHP Agent and open the \"Command line Download\"." | tee -a build_image.cfg
     echo "# and put it all in the below link - incl. the security Token. Exlude the wget command!" | tee -a build_image.cfg
-    echo "FILE='<Insert here the download URL>'" | tee -a build_image.cfg
+    echo "PHP_FILE='<Insert here the download URL>'" | tee -a build_image.cfg
     exit 1
 fi
 
@@ -31,25 +31,45 @@ fi
 #docker rmi $(docker images -f "dangling=true" -q)
 
 echo
-echo -n ">>> Download latest APMIA/PHP archive [y/n]?: "
+echo -n ">>> Download latest APMIA/PHP/MySQL archive [y/n]?: "
 read DownLoad
 
 if [ "$DownLoad" = "y" ]
-   then
-       rm -f PHP-apmia-*.tar
+then
+    # Removing all instance of files.
+    rm -f PHP-apmia-*.tar
 
-       ## Download repository
-       wget --content-disposition $FILE
-       if [ $? == 0 ]
-       then
-	   tar xf PHP-apmia-*.tar apmia/manifest.txt
-	   PHPMONITVER=`grep php-monitor apmia/manifest.txt | cut -d ':' -f 2`
-	   TMP=`ls PHP-apmia-*.tar`
-	   FILENAME=`ls PHP-apmia-*.tar`
-       else
-	   echo "*** FATAL: Download failed. Exiting."
-	   ecit 1
-       fi
+    ## Download repository
+    wget --content-disposition $PHP_FILE
+    if [ $? == 0 ]
+    then
+	tar xf PHP-apmia-*.tar apmia/manifest.txt
+	PHPMONITVER=`grep php-monitor apmia/manifest.txt | cut -d ':' -f 2`
+	TMP=`ls PHP-apmia-*.tar`
+	FILENAME=`ls PHP-apmia-*.tar`
+    else
+	echo "*** FATAL: PHP APMIA Agent download failed. Exiting."
+	exit 1
+    fi
+    if [ -n "$MYSQL_FILE" ]
+    then
+	rm -f MySQL-apmia-*.tar
+	## Download repository
+	wget --content-disposition $MYSQL_FILE
+	if [ $? == 0 ]
+	then
+	    MYSQL_EXT_AGENT=`ls -t MySQL-apmia-*.tar | tail -1`
+	    MYSQL_EXT=`tar tf $MYSQL_EXT_AGENT | grep deploy/mysql`
+	    tar xf $MYSQL_EXT_AGENT $MYSQL_EXT --strip-components=3
+	    mv -f mysql-*.tar.gz ./extensions/
+	    MYSQL_EXT=`ls -t ./extensions/mysql-*.tar.gz | tail -1`
+	    echo ">>> Extracted $MYSQL_EXT" 
+	else
+	    echo "*** FATAL: MySQL Agent download failed. Exiting."
+	    exit 1
+	fi
+    fi
+
 else
     tar xf PHP-apmia-*.tar apmia/manifest.txt
     PHPMONITVER=`grep php-monitor apmia/manifest.txt | cut -d ':' -f 2`

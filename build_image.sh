@@ -42,7 +42,7 @@ if [ "$DownLoad" = "y" ]
        wget --content-disposition $FILE
        if [ $? == 0 ]
        then
-	   tar xvf PHP-apmia-*.tar apmia/manifest.txt
+	   tar xf PHP-apmia-*.tar apmia/manifest.txt
 	   PHPMONITVER=`grep php-monitor apmia/manifest.txt | cut -d ':' -f 2`
 	   TMP=`ls PHP-apmia-*.tar`
 	   FILENAME=`ls PHP-apmia-*.tar`
@@ -51,13 +51,28 @@ if [ "$DownLoad" = "y" ]
 	   ecit 1
        fi
 else
-    tar xvf PHP-apmia-*.tar apmia/manifest.txt
+    tar xf PHP-apmia-*.tar apmia/manifest.txt
     PHPMONITVER=`grep php-monitor apmia/manifest.txt | cut -d ':' -f 2`
     TMP=`ls PHP-apmia-*.tar`
     FILENAME=`ls PHP-apmia-*.tar`   
 fi
 
-echo "Found PHP Monitor $PHPMONITVER!"
+echo ">>> Found PHP Monitor $PHPMONITVER!"
+
+# Checking for MySQL extension file. Take the most recent one if more than one exist.
+EXTFILE=`ls -t extensions/mysql-*.tar.gz 2> /dev/null | head -1`
+
+if [ -f "$EXTFILE" ]
+then
+    EXTNAME=`basename $EXTFILE`
+    echo ">>> Found ${EXTNAME} APMIA Extension. Enabling in build."
+    echo "*** Make sure the Extension is pre-configured for your MySQL DB you want to monitor!"
+    EXTCOPY="COPY extensions\/${EXTNAME}\ \/opt\/apmia\/extensions\/deploy\/${EXTNAME}"
+    cat Dockerfile.tpl | sed -e 's/%%EXTCOPY%%/'"${EXTCOPY}"'/g' > Dockerfile
+else
+    cat Dockerfile.tpl | sed -e '/%%EXTCOPY%%/d' > Dockerfile
+fi 
+
 
 echo
 echo -n ">>> Build APMIA/PHP image [y/n]?: "

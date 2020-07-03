@@ -62,6 +62,13 @@ else
 	    fi
 	fi
 
+	if [ ! -f $PHP_LOGDIR ]
+	then
+	    mkdir -p $PHP_LOGDIR
+	    chown www-data.www-data $PHP_LOGDIR
+	    chmod 775 $PHP_LOGDIR
+	fi
+	
 	echo " * Handing over to real ENTRYPOINT: $ENTRYPOINT"
 	# Execute real Entrypoint. Make sure it hooks itself to the shell.
 	$ENTRYPOINT

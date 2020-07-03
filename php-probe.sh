@@ -84,7 +84,8 @@ echo
 ./installer.sh $SETAPPNAME $SET_ADH $SET_IAHOST $SET_IOPORT $SET_PHPROOT $SET_EXT $SET_INI $SET_LOGDIR
 
 # cleaning up installer mess
-sed -i 's/\"\"/\"/g' /etc/php.d/wily_php_agent.ini
+PHPINI=`find /etc /usr -name "wily_php_agent.ini" | tail -1`
+sed -i 's/\"\"/\"/g' $PHPINI
 
 
 echo "`date`" > /.PHP_PROBE_INSTALLED

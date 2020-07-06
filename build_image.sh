@@ -24,6 +24,7 @@ else
     echo "# Go to the Agent Download Section, select to download the PHP Agent and open the \"Command line Download\"." | tee -a build_image.cfg
     echo "# and put it all in the below link - incl. the security Token. Exclude the wget command!" | tee -a build_image.cfg
     echo "PHP_FILE='<Insert here the download CLI URL for the PHP APMIA Agent>'" | tee -a build_image.cfg
+    echo "" | tee -a build_image.cfg
     echo "# Go to the Agent Download Section, select to download the MYSQL Agent and open the \"Command line Download\"." | tee -a build_image.cfg
     echo "# and put it all in the below link - incl. the security Token. Exclude the wget command!" | tee -a build_image.cfg
     echo "MYSQL_FILE='<Insert here the download CLI URL for the MYSQL APMIA Agent>'" | tee -a build_image.cfg

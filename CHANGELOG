@@ -1,3 +1,7 @@
+2020-07-06 ce603d8 Joerg Mertin Added space in cfg file
+2020-07-03 7b300d2 Joerg Mertin make sure the log-dire for the wily probe exists and is writable.
+2020-07-03 81eb147 Joerg Mertin Fixed path finding of the wily-cfg file for cleanup
+2020-07-02 f522ebe Joerg Mertin Added missing Dockerfile.tpl
 2020-07-01 672c5ff Joerg Mertin Spell checks in documentation
 2020-07-01 49b0e8e Joerg Mertin Added the MySQL CLI Download hint into the configuration file
 2020-07-01 41a6b96 Joerg Mertin Updated docs

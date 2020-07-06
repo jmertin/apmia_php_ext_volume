@@ -1,5 +1,5 @@
 # apmia_php_ext_volume 2.0-7 by J. Mertin -- joerg.mertin@broadcom.com
-Purpose: Docker images for APMIA Agent with PHP Extension Extension and PHP remote Agent Probe implant capability
+Purpose: Docker images for APMIA Agent with PHP Extension and PHP remote Agent Probe implant capability
 
 # Description
 ### Image description

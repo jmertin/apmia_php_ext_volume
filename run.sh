@@ -10,21 +10,12 @@ then
 	echo "*** FATAL: $INS_DIR directory does not exist. Emergency exit!"
     fi
     
-    # Set some defaults if not configured.
-    AADH=${APMIA_AGENT_DISPLAYED_HOSTNAME:-apmia-container}
-    ANAME=${APMIA_APP_NAME:-php-collector}
-    ALOGLVL=${APMIA_LOG_LEVEL:-WARN}
-    AIAAG=${APMIA_INTROSCOPE_AGENTNAME:-apmia}
-
     # Check if we want to add a mysql Monitor
     if [ "$MYSQL_MONITOR" = "true" ]
     then
 	if [ -x ${APMIA_DIR:-/opt/apmia}/deploy_extension.sh ]
 	then
-	    # executing mysql deployment
-	    ${APMIA_DIR:-/opt/apmia}/deploy_extension.sh mysql
-	else
-	    echo "*** INFO: No mysql extension found. "
+	    echo "*** INFO: MySQL Extension active "
 	fi
     else
 	# We need to remove the mysql module from the deploy
@@ -35,10 +26,6 @@ then
 
     
     # Implant configuration / defaults
-    sed -i 's/^introscope.agent.agentName=.*/introscope.agent.agentName\='${AIAAG}'/g' ${INS_DIR}/core/config/IntroscopeAgent.profile
-    sed -i 's/.*introscope.agent.application.name=.*/introscope.agent.application.name\='${ANAME}'/g' ${INS_DIR}/core/config/IntroscopeAgent.profile
-    sed -i 's/^log4j.logger.IntroscopeAgent=.*/log4j.logger.IntroscopeAgent\='${ALOGLVL}'\, console/g' ${INS_DIR}/core/config/IntroscopeAgent.profile
-    echo "introscope.agent.hostName=${AADH}" >> ${INS_DIR}/core/config/IntroscopeAgent.profile
     sync
 
     # Got to APMIA Install directory

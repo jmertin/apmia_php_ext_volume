@@ -123,6 +123,37 @@ You must replace the periods in the property names with underscores. In addition
 
 
 
+If using docker-compose, running the agent will issue one message in the logs:
+
+```
+[cemadm@lvnprod005006 cemperf]$ docker-compose logs apmia-php-vol
+Attaching to apmia-php-vol
+apmia-php-vol    | APM Infrastructure Agent Force Start in Progress...
+apmia-php-vol    | Running APM Infrastructure Agent in force_start mode... (To stop force_start use ctrl+c)
+```
+
+Once can check the APMIA logs that everything runs fine by going into the running container with:
+
+```
+docker exec -it apmia-php-vol /bin/bash
+root@d75da5429526:/# cd /opt/apmia/logs/
+root@d75da5429526:/opt/apmia/logs# cat IntroscopeAgent.log 
+7/08/20 11:45:35 AM GMT [WARN] [IntroscopeAgent.InfrastructureAgent] Attempt to change fixed value of Configuration property (introscope.agent.hostName) to null ignored
+7/08/20 11:45:35 AM GMT [WARN] [IntroscopeAgent.InfrastructureAgent] Attempt to change fixed value of Configuration property (introscope.agent.application.name) to "" ignored
+7/08/20 11:45:35 AM GMT [WARN] [IntroscopeAgent.InfrastructureAgent] Attempt to change fixed value of Configuration property (introscope.agent.hostName) to null ignored
+7/08/20 11:45:35 AM GMT [WARN] [IntroscopeAgent.InfrastructureAgent] Attempt to change fixed value of Configuration property (introscope.agent.application.name) to "" ignored
+7/08/20 11:45:35 AM GMT [WARN] [IntroscopeAgent.InfrastructureAgent] Transaction Tracer user ID has not been configured.  User ID will not be reported with transactions.
+7/08/20 11:45:35 AM GMT [WARN] [IntroscopeAgent.InfrastructureAgent] Attempt to change fixed value of Configuration property (introscope.agent.application.name) to "" ignored
+7/08/20 11:45:35 AM GMT [WARN] [IntroscopeAgent.InfrastructureAgent] Transaction Tracer user ID has not been configured.  User ID will not be reported with transactions.
+7/08/20 11:45:35 AM GMT [WARN] [IntroscopeAgent.BoundaryDetection] Automatic Boundary Detection Service is turned off 
+7/08/20 11:47:40 AM GMT [WARN] [IntroscopeAgent.InfrastructureAgent] Absolute metric clamp of 100 reached, no more new SQL metrics can be created. All metrics will be reported under the default bucket. If you wish to increase the clamp value, change the property - introscope.agent.sqlagent.statement.clamp
+
+```
+
+
+
+
+
 
 ### Deploying to implant the PHP remote agent Probe / passive APMIA volume 
 
@@ -173,7 +204,84 @@ To influence the installation of the PHP probe, one can use the following variab
 $ docker inspect 900c9593e313 | grep ENTRYPOINT
                 "ENTRYPOINT ["/run.sh"]"
 ```
-**Note**: Sometimes the image uses a CMD or Entrypoint instead of ENTRYPOINT.  You need to find the "real" entrypoint of the application. Sometimes, scripts are being used overriding the Entrypoint, or CMD is used. Last resort is to deploy the image as container, and check which entrypoint has been used. You will find the entrypoint as the process running with the PID == 1.   
+**Note**: Sometimes the image uses a CMD or Entrypoint instead of ENTRYPOINT.  You need to find the "real" entrypoint of the application. Sometimes, scripts are being used overriding the Entrypoint, or CMD is used. Last resort is to deploy the image as container, and check which entrypoint has been used. You will find the entrypoint as the process running with the PID == 1.  
+For example:
+
+```
+[cemadm@lvnprod005006 cemperf]$ docker exec -it cemperf /bin/bash
+[root@acc790fb507d app]# ps auxw
+USER        PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root          1  0.0  0.0  11356  1404 ?        Ss   13:27   0:00 /bin/bash /run.sh <= PID == 1
+root         58  0.0  0.0  11352  1340 ?        S    13:27   0:00 /bin/sh /usr/sbin/apachectl -DFOREGROUND
+root         62  0.0  0.0 400172 15120 ?        Sl   13:27   0:00 /usr/sbin/httpd -DFOREGROUND
+apache       64  0.0  0.0 400172  6400 ?        S    13:27   0:00 /usr/sbin/httpd -DFOREGROUND
+apache       65  0.0  0.0 400172  6164 ?        S    13:27   0:00 /usr/sbin/httpd -DFOREGROUND
+apache       66  0.0  0.0 400172  6164 ?        S    13:27   0:00 /usr/sbin/httpd -DFOREGROUND
+apache       67  0.0  0.0 400172  6164 ?        S    13:27   0:00 /usr/sbin/httpd -DFOREGROUND
+apache       68  0.0  0.0 400172  6164 ?        S    13:27   0:00 /usr/sbin/httpd -DFOREGROUND
+apache       69  0.0  0.0 400172  6164 ?        S    13:27   0:00 /usr/sbin/httpd -DFOREGROUND
+apache       70  0.0  0.0 400172  6164 ?        S    13:27   0:00 /usr/sbin/httpd -DFOREGROUND
+apache       71  0.0  0.0 400172  6164 ?        S    13:27   0:00 /usr/sbin/httpd -DFOREGROUND
+root         72  0.6  0.0 108368  1752 pts/0    Ss   13:31   0:00 /bin/bash
+root         86  0.0  0.0 110244  1156 pts/0    R+   13:31   0:00 ps auxw
+```
+
+
+
+ 
+
+Once configured, you can start the PHP Application container and verify the **PHP Remote Agent Probe** implant worked by looking at the logs:
+
+```
+[cemadm@lvnprod005006 cemperf]$ docker-compose up -d
+Creating network "cemperf_default" with driver "bridge"
+Creating cemperf-db    ... done
+Creating apmia-php-vol ... done
+Creating cemperf       ... done
+Creating haproxy       ... done
+[cemadm@lvnprod005006 cemperf]$ docker-compose logs cemperf
+Attaching to cemperf
+cemperf          |  * Implanting PHP probe
+cemperf          | 
+cemperf          |  * Calling php-probe installer with the following options:
+cemperf          |  => -appname "CEMPerfDB" -agenthostname "lvnprod005006" -iahost "apmia-php-vol"     -logdir "/var/log/httpd"
+cemperf          | 
+cemperf          | 
+cemperf          |   Installing CA APM PHP Probe Agent...
+cemperf          | 
+cemperf          |   Looking for PHP Installations on this machine...
+cemperf          | 
+cemperf          |   Installer found following PHP installations on this machine
+cemperf          | 
+cemperf          |    1) /usr/bin
+cemperf          | 
+cemperf          |   Installing CA APM PHP Probe Agent at all discovered PHP installation(s)...
+cemperf          | 
+cemperf          | 
+cemperf          | 
+cemperf          |   Installation Overview:
+cemperf          | 
+cemperf          | 1) PHP Root : /usr/bin/php
+cemperf          |    PHP Version : 5.3.3
+cemperf          |    PHP Extensions directory : /usr/lib64/php/modules
+cemperf          |    PHP Zend Thread Safety : Disabled
+cemperf          |    PHP ini directory : /etc/php.d
+cemperf          |    Installation Status : Success
+cemperf          | 
+cemperf          | 
+cemperf          |    CA APM PHP Probe Agent is successfully installed on your machine.
+cemperf          |    
+cemperf          |    1) To modify default CA APM PHP Probe agent settings update file /etc/php.d/wily_php_agent.ini
+cemperf          |    2) Restart your web server or your PHP-FPM process to see performance metrics.
+cemperf          |      
+cemperf          | chown: invalid user: `www-data.www-data'
+cemperf          |  * Handing over to real ENTRYPOINT: /run.sh
+
+```
+
+The log will tell if everything went as it is supposed to.
+
+From here on, if the application is used, metrics should start to show up in the DX APM SaaS UI
 
 
 

@@ -1,3 +1,4 @@
+2020-07-08 d04bd45 Joerg Mertin Change APMIA and extension configuration to be done theough APMENV Variables
 2020-07-08 4a4ed5d Joerg Mertin Removed APMIA Configurator. Done through Environment now.
 2020-07-08 7a73923 Joerg Mertin Removed deploy_extension reference - as configuration is done through Env Variables
 2020-07-06 613bfa2 Joerg Mertin Doc fixes

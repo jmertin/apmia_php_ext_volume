@@ -336,6 +336,11 @@ mertin/apmia_php_ext_volume   20.1.0.44                  d9789ba11ae3        3 m
 
 # Manual Changelog
 ```
+Wed,  8 Jul 2020 11:53:17
+	- APMIA and Extensions are now configured using APMENV_VAR
+	- Removed code to configure the Extensions
+ 	- Updated docs
+
 Mon Jul  6 11:08:36 CEST 2020
 	- Added MySQL extension to APMIA Agent
 	- New PHP remote agent probe implant using Entrypoint superseed method. Does not require to

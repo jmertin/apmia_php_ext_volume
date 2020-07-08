@@ -4,35 +4,39 @@ Purpose: Docker images for APMIA Agent with PHP Extension and PHP remote Agent P
 # Description
 ### Image description
 
-This image build kit will creates an image containing the **APMIA Agent + MySQL and PHP Extension**, at the same time all files required to implant the **PHP remote agent probe** into a potential PHP application container at start-time.   
+This image build kit creates an image containing the **APM IA Agent + MySQL and PHP Extension**, and at the same time will provide all files required to implant the **PHP remote agent probe** into a PHP application container at start-time. The **implant** does not require the PHP application image to be modified upfront.
 
-Depending on its deployment configuration, it will implant the **php remote agent probe**, or start up an APMIA collector already configured and connected to the DX APM SaaS environment it was downloaded from.
+When deploying, the image can run in 2 operation modes:
+1. Start up an APM IA (Infrastructure Agent) collector. Downloaded from DX SaaS, it is pre-configured to connect to the latter.
+2. **PHP Remote Agent** implant mode. It will implant the PHP Propbe before starting the configured ENTRYPOINT/CMD of the PHP Application.
 
 Note that because most PHP installations connect to a database, an optional mysql extension implant support has been added.
+
+**It is assumed that the person using this fieldpack knows the APMIA Agent and how to deploy it, also has some basic knowledge in building a Docker Image and deploying it.**
+
+
 
 
 ### Functional description of the PHP Agent/Probe
 
-The below graph describes the setup in general.   
+The below graph describes a general deployment scenario.   
 ![Overview](PHP_APMIA_Docker.png)
 
-The general approach to deploy the **PHP Remote Agent Probe** in an environment is as follows:
+To monitor a PHP Application, one needs 3 components to be deployed/configured and integrated.
 
-1. Deploy the Infrastructure Agent that 
-    - sends monitoring data to the private or public cloud data collector
-    - hosts the PHP remote agent probe files for implant into the PHP application container
-2. Deploy and activate the **PHP extension** inside the IA. The extension proxies data:
-    - sends monitoring data to the IA (Infrastructure Agent)
-    - receives monitoring data from the **PHP Remote Agent Probe** (Installed at the WebServer Level/PHP section)
-3. Deploy the **PHP Remote Agent Probe** into one or more PHP installations. The probe captures monitoring data and sends them to the configured APMIA + PHP extension (on port 5005 - by default)
+1. Deploy an APM IA (Infrastructure Agent)
+This is the actual Agent which will act as a proxy to the DX APM SaaS backend.
+2. Enable the **PHP Extension** inside the APM IA.   
+This will enable the APM IA to know what to do with the received data.
+3. Deploy the **PHP Remote Agent Probe** into one or more PHP containers.   
+The **PHP Remote Agent Probe** will collect data from non Java applications and forward these to the PHP Extension enabled APM IA Agent for processing.
 
 **Note**: One APM IA (Infrastructure Agent) with the PHP Extension can receive monitoring data from multiple PHP remote agent Probes (And other remote agents probes).   
 To save resources you can therefore deploy only one IA with the PHP extension to serve multiple PHP Remote Agent Probes.
 (The IA is heavyweight (Java) and the PHP Remote Agent Probe is lightweight, about ~3MBytes).   
-**Note 2**: Reduce the network path/hops the PHP remote Agent Probe has to pass to transfer its findings to the IA (Infrastructure Agent). The network induce I/O can have an impact on the overall network infrastructure on highly loaded WebServers. The best approach is to use one IA per physical machine in the Docker cluster.
+**Note 2**: Reduce the network path/hops the PHP remote Agent Probe has to use to transfer its metrics to the IA (Infrastructure Agent). The network induced I/O can have an impact on the overall network performance on highly loaded WebServers. 
 
-This documentation describes how to deploy an IA in a docker container and how to deploy a PHP probe in other docker containers for a resource efficient setup. You can also deploy the APMIA Agent +  Extensions on the OS running the docker environment, and point the PHP Remote Remote Probe to it. This way you'll get "real" Infrastructure metrics of the host running the docker environment.
-
+It would be best to have a APM IA agent already deployed on each physical host of the docker cluster. That way one will receive metrics of the actual host running the docker environment.
 
 
 #### Dependency
@@ -41,29 +45,30 @@ Requires the download links to PHP-APMIA Agent, and MySQL-apmia agent.
 
 #### Restrictions
 
-- The APMIA image will share its /opt/apmia (default installation path inside the docker container) directory to other containers.   This means that the configuration files, log-files etc. can be modified by any instance. So be careful which instance modifies any file in the /opt/apmia directory
+- The APM IA image will share its /opt/apmia (default installation path inside the docker container) directory to other containers.   This means that the configuration files, log-files etc. can be modified by any instance accessing it. So be careful which instance modifies any file in the /opt/apmia directory
 
 ### How to use this image
 
 The idea is to use the APMIA Agent and the Probes in the same environment, while only one APMIA Agent is required, many PHP remote agent probes can report their data to it.
 
-Using the Docker environment, a dedicated subnet will be created connecting the APMIA and the probes together. Hence there will be no requirement to open any ports. As all required incoming connections will already be inside the docker LAN, and all other communication flows will be initiated by the APMIA Agent to the outside world, in this case the DX APM SaaS Instance.   
+Using the Docker environment, a dedicated subnet will be created connecting the APMIA and the probes together. Hence there will be no requirement to open any ports as all required incoming connections will already be inside the docker LAN, and all other communication flows will be initiated by the APMIA Agent to the outside world, in this case the DX APM SaaS Instance.   
 
 To correctly use this image, the following steps must be undertaken:   
-1. Deploy the APMIA as an Agent (Deploying as a APMIA Agent). One APM IA needs to run to collect the data from the PHP Remote Agent Probe(s).
+1. Deploy one APMIA as an Agent. It can be on the host or inside a docker container. This image only supports the docker-container deployment mode!
 2. Install the **APM PHP Remote Agent Probe** one or more times. 
    This requires:   
-   
    - mount the /opt/apmia volume of the deployed APMIA Agent into the deployed container hosting the PHP application
-   
    - Identify the ENTRYPOINT of the PHP application
-   
    - Subseed the ENTRYPOINT with the PHP Application image provided one
-   
-     
 
 
-### Deploying as a APMIA Agent
+
+**Note: You will first need to build the image for your environment.**
+
+
+
+
+### Deploying as running APMIA Agent
 
 Deploying as APMIA Agent container is pretty straight forward.
 
@@ -97,15 +102,17 @@ Add the following into the docker-compose file:
       - /opt/apmia
 ```
 **Note 1**: The volume "/opt/apmia" is very important if one wants to use the same image for deploying the probes. See next chapter.   
-**Note 2**: Do not use spaces in the app names. The php module installer does not like it.   
+**Note 2**: Do not use spaces in the app names. The **APM PHP Remote Agent Probe** installer does not like it.   
 
 
 In the configuration, the following can be influenced:
-- APMIA_DEPLOY [true|false]: Instructs the start script to either launch the APMIA Agent, or simply skip it and return a true exit value. Defaults to false
+- APMIA_DEPLOY [true|**false**]: If set to **true** the deployment process will launch the APM IA Agent with configured extensions (Default PHP Extension and if wanted, MySQL Extension).   
+  
+  If set to **false**, this image will remain passive (no application will run) but exit to provide the volume for implanting the **APM PHP Remote Agent Probe**.  
   **NOTE**: In passive mode, the container will exist and show an "Exit 0" status. This is normal! Do not delete it!  
   
-- The configuration of  the APMIA is done through the usual Variables with APMENV as prefix.
-  You can use any of the properties in the Infrastructure Agent profile to further configure your environment (See [Infrastructure Agent Properties Reference](https://techdocs.broadcom.com/content/broadcom/techdocs/us/en/ca-enterprise-software/it-operations-management/dx-apm-saas/SaaS/implementing-agents/infrastructure-agent/infrastructure-agent-properties-reference.html) for reference). 
+- The configuration of  the APM IA is done through the usual Variables with APMENV as prefix.
+  You can use any of the properties in the **InfrastructureAgent.profile** to further configure your environment (See [Infrastructure Agent Properties Reference](https://techdocs.broadcom.com/content/broadcom/techdocs/us/en/ca-enterprise-software/it-operations-management/dx-apm-saas/SaaS/implementing-agents/infrastructure-agent/infrastructure-agent-properties-reference.html) for details). 
 You must replace the periods in the property names with underscores. In addition,  you must prefix each property with apmenv_ (upper or lower-case).    
   For example, to configure the agent name and a proxy server for Docker Swarm, you would use the introscope.agent.agentName and introscope.agent.enterprisemanager.transport.http.proxy.host properties (optional values in bold) as follows:   
   
@@ -114,20 +121,18 @@ You must replace the periods in the property names with underscores. In addition
        - APMENV_INTROSCOPE_AGENT_ENTERPRISEMANAGER_TRANSPORT_HTTP_PROXY_HOST=example_proxy_server.com
   ```
 
-- If the APMIA_DEPLOY tag is set to "true" - the APMIA Infrastructure Agent will be deployed. If it is set to "false" this image will remain passive (no application will be run. It will show a state if "Exit 0". This is normal).   
 
 
 
+### Deploying to implant the PHP remote agent Probe / passive APMIA volume 
 
-### Deploying to implant the PHP remote agent Probe 
+In a docker-compose file - set version to '2' - one needs to create a passive volume inclusion. Adapt/convert to other versions.
 
-In a docker-compose file - set version to '2' - one needs to create a passive volume inclusion.
-
-Even if you don't deploy the APMIA Container, it will have to exist in the docker-compose file in "passive mode" as previously described. The PHP Probes requires the image content to implant the probe binaries into the application php environment.   
-If you don't want a APMIA Agent to run, set the "APMIA_DEPLOY=false". This will cause it to be a passive image.   
+Even if you don't intend to run the APM IA Agent, the container definition will have to exist in the docker-compose file in "passive mode" as previously described. The **PHP Remote Agent Probe** requires the image content to implant the probe binaries into the application php environment.   
+If you don't want a APMIA Agent to run, set the "APMIA_DEPLOY=false". This will cause it to remain a passive container.   
 
 
-And in the application one wants to mount the passive image, add the following. Take into account that:
+In the container definition running the PHP Application, add the following tags:
 ```
 version: '2'
 [...]
@@ -147,7 +152,7 @@ version: '2'
 ```
 **Note**: In case the mount directory is not /opt/apmia - the installer script needs to be modified!   
 **Note 2**: The PHP_IAHOST needs to match the container-name of the APMIA container name or the APMIA Host!   
-**Note 3**: The "apmia-php-vol" refers to APMIA Agent section (see "Deploying as a APMIA Agent").   
+**Note 3**: The "apmia-php-vol" refers to APMIA Agent section (see "Deploying as running APMIA Agent").   
 **Note 4**: Do not use spaces in the app names. The installer does not like it.   
 
 To influence the installation of the PHP probe, one can use the following variables to be exposed in the docker-compose file. Note that not all are mandatory, as the implant script does a good job at identifying what needs to be used.
@@ -161,23 +166,39 @@ To influence the installation of the PHP probe, one can use the following variab
 - PHP_EXT: PHP modules directory
 - PHP_INI: PHP ini directory
 - PHP_LOGDIR: PHP probe agent logs directory. WARNING: As this is a shared VOLUME, do not set the log directory to be in it!
-- PHP_DEPLOY [true:false]: Trigger to install the probe
+- PHP_DEPLOY[Mandatory] [true:false]: Trigger to install the **PHP Remote Agent Probe**.
 - PHP_PROBE_DIR: Directory the probe files exists. Defaults to /opt/apmia
 - ENTRYPOINT [Mandatory]: This points to the original entrypoint defined in the application image at build time. Identify it using the docker describe call with:   
 ```
 $ docker inspect 900c9593e313 | grep ENTRYPOINT
                 "ENTRYPOINT ["/run.sh"]"
 ```
-Note: Sometimes the image uses a CMD or Entrypoint instead of ENTRYPOINT.  You need to find the "real" entrypoint of the application. Sometimes, scripts are being used overriding the Entrypoint, or CMD is used. Last resort is to deploy the image as container, and check which entrypoint has been used.
+**Note**: Sometimes the image uses a CMD or Entrypoint instead of ENTRYPOINT.  You need to find the "real" entrypoint of the application. Sometimes, scripts are being used overriding the Entrypoint, or CMD is used. Last resort is to deploy the image as container, and check which entrypoint has been used. You will find the entrypoint as the process running with the PID == 1.   
 
 
 
 
 ### Building the apmia image
 
-To create the APMIA Image, one need to provide the CLI Download link of the PHP enabled APMIA package. Got to your DX APM SaaS Tenant, and on the left side, into the "Agents" section => "Download Agents". Under Applications select the "PHP" application.   
+the first build-attempt will cause an error message:
 
-**NOTE**: The  **build_image.cfg** will be created on the first run if non existent. The URL however needs to be provided by the user.   
+```
+jmertin@calypso:~/docker/apmia_php_ext_volume$ ./build_image.sh 
+
+*** ERROR: Missing build_image.cfg configuration file (normal on first run)!
+=============================================================================================================
+# Go to the Agent Download Section, select to download the PHP Agent and open the "Command line Download".
+# and put it all in the below link - incl. the security Token. Exclude the wget command!
+PHP_FILE='<Insert here the download CLI URL for the PHP APMIA Agent>'
+
+# Go to the Agent Download Section, select to download the MYSQL Agent and open the "Command line Download".
+# and put it all in the below link - incl. the security Token. Exclude the wget command!
+MYSQL_FILE='<Insert here the download CLI URL for the MYSQL APMIA Agent>'
+```
+
+Running it the first time will create the template configuration file. Into that file, one needs to enter both the APMIA PHP and MYSQL Download link.
+
+To create the APMIA Image, one need to provide the CLI Download link of the PHP enabled APMIA package. Got to your DX APM SaaS Tenant, and on the left side, into the "Agents" section => "Download Agents". Under Applications select the "PHP" application.   
 
 Open the "Command line Download" entry - and extract the URL and apply it to the **PHP_FILE** Variable in the **build_image.cfg** file.
 

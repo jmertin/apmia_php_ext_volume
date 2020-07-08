@@ -4,7 +4,7 @@ This image build kit creates an image containing the **APM IA Agent + MySQL and 
 
 When deploying, the image can run in 2 operation modes:
 1. Start up an APM IA (Infrastructure Agent) collector. Downloaded from DX SaaS, it is pre-configured to connect to the latter.
-2. **PHP Remote Agent Probe** implant mode. It will implant the PHP Propbe before starting the configured ENTRYPOINT/CMD of the PHP Application.
+2. **PHP Remote Agent Probe** implant mode. It will implant the PHP Probe before starting the configured ENTRYPOINT/CMD of the PHP Application.
 
 Note that because most PHP installations connect to a database, an optional mysql extension implant support has been added.
 

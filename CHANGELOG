@@ -1,3 +1,6 @@
+2020-07-08 4a4ed5d Joerg Mertin Removed APMIA Configurator. Done through Environment now.
+2020-07-08 7a73923 Joerg Mertin Removed deploy_extension reference - as configuration is done through Env Variables
+2020-07-06 613bfa2 Joerg Mertin Doc fixes
 2020-07-06 2d2f171 Joerg Mertin Updated documentation
 2020-07-06 ce603d8 Joerg Mertin Added space in cfg file
 2020-07-03 7b300d2 Joerg Mertin make sure the log-dire for the wily probe exists and is writable.

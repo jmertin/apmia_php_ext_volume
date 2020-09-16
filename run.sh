@@ -30,6 +30,8 @@ then
 
     # Got to APMIA Install directory
     cd $INS_DIR
+    # Cleaning leftovers or else APMIA restart of image will fail without removal
+    rm -f ./bin/apmia.pid
     # Execute APMIA
     ./APMIACtrl.sh force_start
 else

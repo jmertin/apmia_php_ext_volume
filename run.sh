@@ -30,7 +30,7 @@ then
 
     # Got to APMIA Install directory
     cd $INS_DIR
-    # Cleaning leftovers or else APMIA restart of container/pod will fail without removal
+    # Cleaning leftovers or else APMIA restart of container/pod will fail
     rm -f ./bin/apmia.pid
     # Execute APMIA
     ./APMIACtrl.sh force_start

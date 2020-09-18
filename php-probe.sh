@@ -51,25 +51,25 @@ fi
 # PHP Root directory [Optional] - required if non standard
 if [ -n "$PHP_ROOT" ]
 then
-    SET_PHPROOT="-phproot \"${PHP_ROOT}\""
+    SET_PHPROOT="-phproot ${PHP_ROOT}"
 fi
 
 # PHP Extensions directory [Optional] - required if non standard
 if [ -n "$PHP_EXT" ]
 then
-    SET_EXT="-ext \"${PHP_EXT}\""
+    SET_EXT="-ext ${PHP_EXT}"
 fi
 
 # PHP Extension configuration directory [Optional] - required if non standard
 if [ -n "$PHP_INI" ]
 then
-    SET_INI="-ini \"${PHP_INI}\""
+    SET_INI="-ini ${PHP_INI}"
 fi
 
 # PHP probe Log directory [Optional] - required if non standard
 if [ -n "$PHP_LOGDIR" ]
 then
-    SET_LOGDIR="-logdir \"${PHP_LOGDIR}\""
+    SET_LOGDIR="-logdir ${PHP_LOGDIR}"
 fi
 
 # Changing to the probe installation directory
